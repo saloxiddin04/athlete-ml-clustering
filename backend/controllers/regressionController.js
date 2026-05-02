@@ -167,7 +167,7 @@ const predictReg = async (req, res) => {
         recommendation = recommend(
           { ...profile, preferred_activity: profile.activity_type },
           recommenderModel,
-          9
+          15
         );
       }
     } catch (recErr) {
