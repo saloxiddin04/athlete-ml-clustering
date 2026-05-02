@@ -214,35 +214,39 @@ const r2Score = (truths, preds) => {
  *   metrics - { linear, rf, gbm } x { rmse, r2 }
  */
 const trainRegressionModels = (data) => {
-  // Kerakli ustunlari to'liq bo'lgan satrlarni filtrlash
+  // Kerakli ustunlari to'liq bo'lgan satrlarni filtrlash va mantiqsiz ma'lumotlarni tozalash
   const clean = data.filter(d => {
     const hasFeatures = REG_FEATURES.every(f => 
       d[f] !== null && d[f] !== undefined && !isNaN(parseFloat(d[f]))
     );
     const hasTarget = d[TARGET] !== null && d[TARGET] !== undefined && !isNaN(parseFloat(d[TARGET]));
-    return hasFeatures && hasTarget;
+    
+    // Mantiqiy filtr: Agar vaqt ko'p bo'lib kaloriya o'ta kam bo'lsa (shovqin), uni o'qitishga qo'shmaymiz
+    const ratio = parseFloat(d[TARGET]) / (parseFloat(d.duration_minutes) || 1);
+    const isRealistic = ratio > 0.05; // Bor yo'g'i 0.05 kcal/min dan kam bo'lganlarni o'chiramiz
+
+    return hasFeatures && hasTarget && isRealistic;
   });
 
-  // Agar clean data kam bo'lsa, kamroq qattiq talab bilan urinib ko'rish
-  let finalData = clean;
-  if (finalData.length < 10) {
-    console.warn('⚠️ Regression: To\'liq ma\'lumotlar kam, qisman ma\'lumotlar bilan urinib ko\'rilmoqda...');
-    finalData = data.filter(d => 
-      !isNaN(parseFloat(d.duration_minutes)) && 
-      !isNaN(parseFloat(d.calories_burned)) &&
-      !isNaN(parseFloat(d.age))
-    );
-  }
+  // Feature Engineering: Intensivlikni va yurak urishini birlashtiruvchi indeks
+  const dataset = clean.map(d => {
+    const intensityVal = d.intensity?.toLowerCase() === 'high' ? 3 : (d.intensity?.toLowerCase() === 'medium' ? 2 : 1);
+    return {
+      ...d,
+      metabolic_index: (parseFloat(d.duration_minutes) || 0) * intensityVal * (parseFloat(d.avg_heart_rate) || 100) / 100
+    };
+  });
 
-  if (finalData.length < 5) throw new Error('Regression o\'qitish uchun kamida 5 ta mantiqiy yozuv kerak.');
+  if (dataset.length < 5) throw new Error('Regression o\'qitish uchun kamida 5 ta mantiqiy yozuv kerak.');
   
-  const dataset = finalData;
+  // REG_FEATURES ga yangi indeksni qo'shish
+  const augmentedFeatures = [...REG_FEATURES, 'metabolic_index'];
 
   // Har ustun uchun alohida Min-Max stats hisoblash
-  const stats = computeMinMaxStats(dataset, [...REG_FEATURES, TARGET]);
+  const stats = computeMinMaxStats(dataset, [...augmentedFeatures, TARGET]);
 
   // Feature vektorlarni normalizatsiya qilish [0,1]
-  const Xs = dataset.map(d => encodeRow(d, stats));
+  const Xs = dataset.map(d => augmentedFeatures.map(f => minMaxScale(parseFloat(d[f] || 0), stats[f])));
 
   // Target qiymatlarni normalizatsiya qilish [0,1]
   const normYs = dataset.map(d => scaleTarget(d, stats));
@@ -302,7 +306,12 @@ const trainRegressionModels = (data) => {
  * @returns {number} bashorat qilingan calories_burned (asl masshtabda)
  */
 const predictCalories = (row, { models, stats }, preferModel = 'rf') => {
-  const xs = encodeRow(row, stats);
+  const intensityVal = row.intensity?.toLowerCase() === 'high' ? 3 : (row.intensity?.toLowerCase() === 'medium' ? 2 : 1);
+  const metabolicIndex = (parseFloat(row.duration_minutes) || 0) * intensityVal * (parseFloat(row.avg_heart_rate) || 100) / 100;
+  const augmentedRow = { ...row, metabolic_index: metabolicIndex };
+  const augmentedFeatures = [...REG_FEATURES, 'metabolic_index'];
+
+  const xs = augmentedFeatures.map(f => minMaxScale(parseFloat(augmentedRow[f] || 0), stats[f]));
   const { linModel, rfTrees, gbm } = models;
 
   let normPred;
