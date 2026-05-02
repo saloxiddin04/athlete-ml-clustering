@@ -10,7 +10,6 @@ const router = express.Router();
 const { uploadCSV, getUploads, getSampleCSV } = require('../controllers/uploadController');
 const { trainModels, getTrainingHistory } = require('../controllers/trainingController');
 const { getAthletes, getClusters, getStats, deleteAthlete, resetAthletes, getAnalytics } = require('../controllers/athleteController');
-const { predict, getModelStats, batchPredict, refreshModel} = require('../controllers/predictionController');
 const { register, login, getMe } = require('../controllers/authController');
 const { getUsers, updateUserRole, deleteUser } = require('../controllers/userController');
 
@@ -73,36 +72,13 @@ router.get('/clusters', protect, getClusters);
 // ===== Analytics Routes =====
 router.get('/analytics', protect, getAnalytics);
 
-// ===== Prediction Routes (All authenticated) =====
-router.post('/predict', protect, predict);
-router.post('/predict/batch', batchPredict);
-
-// Get model statistics and performance metrics
-router.get('/model/stats', getModelStats);
-
-// Force refresh model
-router.post('/model/refresh', refreshModel);
-
-// ===== Multi-Target Regression =====
+// ===== Prediction & Regression Routes (All authenticated) =====
 const { trainRegression, predictReg, getMetrics } = require('../controllers/regressionController');
+
+router.post('/predict', protect, predictReg); // Point legacy /predict to consolidated regression
 router.post('/regression/train',   protect, authorize('admin'), trainRegression);
 router.post('/regression/predict', protect, predictReg);
 router.get('/regression/metrics',  protect, getMetrics);
-
-// ===== Activity Recommendation =====
-const { getRecommendation, refreshRecommender } = require('../controllers/recommendController');
-router.post('/recommend',         protect, getRecommendation);
-router.post('/recommend/refresh', protect, authorize('admin'), refreshRecommender);
-
-// ===== Health Risk =====
-const { trainRisk, predictRisk, getRiskMetrics, getFitnessScores, getAnomalies } = require('../controllers/insightsController');
-router.post('/risk/train',   protect, authorize('admin'), trainRisk);
-router.post('/risk/predict', protect, predictRisk);
-router.get('/risk/metrics',  protect, getRiskMetrics);
-
-// ===== Fitness Score & Anomaly Detection =====
-router.get('/fitness-scores', protect, getFitnessScores);
-router.get('/anomalies',      protect, getAnomalies);
 
 // ===== Smart Insights & Model Comparison =====
 const { getSmartInsights, getModelComparison } = require('../controllers/insightsTextController');

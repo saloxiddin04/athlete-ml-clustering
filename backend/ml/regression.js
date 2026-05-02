@@ -74,20 +74,6 @@ const scaleTarget = (val, stats) =>
 const descaleTarget = (normVal, stats) =>
   normVal * (stats[TARGET].max - stats[TARGET].min) + stats[TARGET].min;
 
-// ── Z-score normalization (eski, ishlatilmayapti) ─────────────────────────────
-// const normalise = (data) => {
-//   const stats = {};
-//   [...REG_FEATURES, TARGET].forEach(f => {
-//     const vals = data.map(d => parseFloat(d[f] ?? 0));
-//     const mu   = mean(vals);
-//     const sigma = Math.sqrt(vals.reduce((s,v) => s + (v-mu)**2, 0)/vals.length) || 1;
-//     stats[f] = { mean: mu, std: sigma };
-//   });
-//   return { stats };
-// };
-// const encodeZScore = (row, stats) =>
-//   REG_FEATURES.map(f => (parseFloat(row[f] ?? 0) - stats[f].mean) / stats[f].std);
-
 // ── MSE helper ────────────────────────────────────────────────────────────────
 const mse = ys => {
   if (!ys.length) return 0;
@@ -197,14 +183,26 @@ const gbmPredict = ({ basePred, estimators, lr }, xs) =>
   basePred + estimators.reduce((s, t) => s + lr * treePredict(t, xs), 0);
 
 // ── Metrics ───────────────────────────────────────────────────────────────────
-const rmse = (truths, preds) =>
-  Math.sqrt(mean(truths.map((t, i) => (t - preds[i]) ** 2)));
+const rmse = (truths, preds) => {
+  if (!truths.length || !preds.length) return 0;
+  const error = truths.reduce((s, t, i) => {
+    const p = isNaN(preds[i]) ? 0 : preds[i];
+    return s + (t - p) ** 2;
+  }, 0);
+  return Math.sqrt(error / truths.length);
+};
 
 const r2Score = (truths, preds) => {
+  if (!truths.length) return 0;
   const mu    = mean(truths);
   const ssTot = truths.reduce((s, t) => s + (t - mu) ** 2, 0);
-  const ssRes = truths.reduce((s, t, i) => s + (t - preds[i]) ** 2, 0);
-  return ssTot === 0 ? 1 : 1 - ssRes / ssTot;
+  const ssRes = truths.reduce((s, t, i) => {
+    const p = isNaN(preds[i]) ? 0 : preds[i];
+    return s + (t - p) ** 2;
+  }, 0);
+  if (ssTot === 0) return 1.0;
+  const r2 = 1 - ssRes / ssTot;
+  return isNaN(r2) ? 0 : r2;
 };
 
 // ── Main train function ───────────────────────────────────────────────────────
@@ -217,24 +215,40 @@ const r2Score = (truths, preds) => {
  */
 const trainRegressionModels = (data) => {
   // Kerakli ustunlari to'liq bo'lgan satrlarni filtrlash
-  const clean = data.filter(d =>
-    REG_FEATURES.every(f => d[f] !== null && d[f] !== undefined && !isNaN(parseFloat(d[f]))) &&
-    d[TARGET] !== null && d[TARGET] !== undefined && !isNaN(parseFloat(d[TARGET]))
-  );
+  const clean = data.filter(d => {
+    const hasFeatures = REG_FEATURES.every(f => 
+      d[f] !== null && d[f] !== undefined && !isNaN(parseFloat(d[f]))
+    );
+    const hasTarget = d[TARGET] !== null && d[TARGET] !== undefined && !isNaN(parseFloat(d[TARGET]));
+    return hasFeatures && hasTarget;
+  });
 
-  if (clean.length < 30) throw new Error('Regression o\'qitish uchun kamida 30 ta to\'liq yozuv kerak.');
+  // Agar clean data kam bo'lsa, kamroq qattiq talab bilan urinib ko'rish
+  let finalData = clean;
+  if (finalData.length < 10) {
+    console.warn('⚠️ Regression: To\'liq ma\'lumotlar kam, qisman ma\'lumotlar bilan urinib ko\'rilmoqda...');
+    finalData = data.filter(d => 
+      !isNaN(parseFloat(d.duration_minutes)) && 
+      !isNaN(parseFloat(d.calories_burned)) &&
+      !isNaN(parseFloat(d.age))
+    );
+  }
+
+  if (finalData.length < 5) throw new Error('Regression o\'qitish uchun kamida 5 ta mantiqiy yozuv kerak.');
+  
+  const dataset = finalData;
 
   // Har ustun uchun alohida Min-Max stats hisoblash
-  const stats = computeMinMaxStats(clean, [...REG_FEATURES, TARGET]);
+  const stats = computeMinMaxStats(dataset, [...REG_FEATURES, TARGET]);
 
   // Feature vektorlarni normalizatsiya qilish [0,1]
-  const Xs = clean.map(d => encodeRow(d, stats));
+  const Xs = dataset.map(d => encodeRow(d, stats));
 
   // Target qiymatlarni normalizatsiya qilish [0,1]
-  const normYs = clean.map(d => scaleTarget(d, stats));
+  const normYs = dataset.map(d => scaleTarget(d, stats));
 
   // 80/20 train/test ajratish
-  const splitIdx = Math.floor(clean.length * 0.8);
+  const splitIdx = Math.floor(dataset.length * 0.8);
   const trainXs  = Xs.slice(0, splitIdx);
   const testXs   = Xs.slice(splitIdx);
   const trainNormYs = normYs.slice(0, splitIdx);
@@ -265,7 +279,7 @@ const trainRegressionModels = (data) => {
     models: { linModel, rfTrees, gbm },
     stats,
     metrics,
-    trainedOn: clean.length
+    trainedOn: dataset.length
   };
 };
 

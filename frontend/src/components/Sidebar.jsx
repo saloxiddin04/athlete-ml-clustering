@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { id: 'athletes', label: 'Athletes', icon: '🏃', path: '/athletes' },
   { id: 'visualization', label: 'Visualizations', icon: '📊', path: '/visualization' },
   { id: 'prediction', label: 'Predict', icon: '🎯', path: '/prediction' },
+  { id: 'history', label: 'History', icon: '📜', path: '/history' },
 ];
 
 export default function Sidebar() {

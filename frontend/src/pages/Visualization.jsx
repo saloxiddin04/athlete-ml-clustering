@@ -190,7 +190,7 @@ export default function Visualization() {
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 30 }}>
               {/* Activity Distribution */}
               <Card style={{ padding: 30 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 25 }}>Faoliyat Turlari Taqsimoti</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 25 }}>AI Guruhlar Bo'yicha Taqsimot</h3>
                 <div style={{ height: 350 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={groups || []}>
@@ -208,7 +208,7 @@ export default function Visualization() {
 
               {/* Health Breakdown */}
               <Card style={{ padding: 30 }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 25 }}>Guruhlar Foizi</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 25 }}>Guruhlar Ulushi</h3>
                 <div style={{ height: 350 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -225,17 +225,17 @@ export default function Visualization() {
                 </div>
               </Card>
 
-              {/* Relationship: Calories vs Duration (Sample) */}
+              {/* Relationship: BMI vs Fitness (Sample) */}
               <Card style={{ padding: 30, gridColumn: 'span 2' }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 25 }}>Mashg'ulot Vaqti va Kaloriya Bog'liqligi</h3>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 25 }}>BMI va O'rtacha Fitness Darajasi Bog'liqligi</h3>
                 <div style={{ height: 400 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis type="number" dataKey="duration_minutes" name="Vaqt" unit=" min" tick={{ fill: '#94a3b8' }} />
-                      <YAxis type="number" dataKey="calories_burned" name="Kaloriya" unit=" kcal" tick={{ fill: '#94a3b8' }} />
+                      <XAxis type="number" dataKey="bmi" name="BMI" unit="" tick={{ fill: '#94a3b8' }} domain={['auto', 'auto']} />
+                      <YAxis type="number" dataKey="fitness_level" name="Fitness" unit="" tick={{ fill: '#94a3b8' }} domain={['auto', 'auto']} />
                       <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                      <Scatter name="Sportchilar" data={displayPoints} fill="#3b82f6" fillOpacity={0.6} />
+                      <Scatter name="Sportchilar" data={points?.slice(0, 500) || []} fill="#3b82f6" fillOpacity={0.6} />
                     </ScatterChart>
                   </ResponsiveContainer>
                 </div>

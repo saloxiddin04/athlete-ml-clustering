@@ -11,6 +11,7 @@ import Visualization from './pages/Visualization';
 import Prediction from './pages/Prediction';
 import Login from './pages/Login';
 import Users from './pages/Users';
+import History from './pages/History';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useSelector(s => s.auth);
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/athletes" element={<ProtectedRoute><Athletes /></ProtectedRoute>} />
             <Route path="/visualization" element={<ProtectedRoute><Visualization /></ProtectedRoute>} />
             <Route path="/prediction" element={<ProtectedRoute><Prediction /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
             
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

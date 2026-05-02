@@ -62,25 +62,10 @@ export const getAnalytics = (params = {}) => api.get('/analytics', { params });
 // ===== Clusters =====
 export const getClusters = (params = {}) => api.get('/clusters', { params });
 
-// ===== Prediction =====
-export const predict = (data) => api.post('/predict', data);
-
 // ===== Multi-Target Regression =====
 export const trainRegression    = ()     => api.post('/regression/train');
 export const predictRegression  = (data) => api.post('/regression/predict', data);
 export const getRegressionMetrics = ()   => api.get('/regression/metrics');
-
-// ===== Activity Recommendation =====
-export const getRecommendation = (data) => api.post('/recommend', data);
-
-// ===== Health Risk =====
-export const trainHealthRisk   = ()     => api.post('/risk/train');
-export const predictHealthRisk = (data) => api.post('/risk/predict', data);
-export const getHealthRiskMetrics = ()  => api.get('/risk/metrics');
-
-// ===== Fitness Scores & Anomaly Detection =====
-export const getFitnessScores = (params = {}) => api.get('/fitness-scores', { params });
-export const getAnomalies     = (params = {}) => api.get('/anomalies',      { params });
 
 // ===== Smart Insights & Model Comparison =====
 export const getSmartInsights  = () => api.get('/insights/smart');
