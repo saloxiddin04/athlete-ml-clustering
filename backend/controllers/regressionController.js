@@ -28,7 +28,7 @@ let recommenderModel = null;
 // ── O'qitish ─────────────────────────────────────────────────────────────────
 const trainRegression = async (req, res) => {
   try {
-    console.log('📊 Regression: 5,000 ta yozuv tanlanmoqda...');
+    console.log('📊 Regression: 10.000 ta yozuv tanlanmoqda...');
     const result = await query(
       `SELECT age, height_cm, weight_kg, bmi, duration_minutes, intensity,
               activity_type, avg_heart_rate, resting_heart_rate, daily_steps,
@@ -38,7 +38,7 @@ const trainRegression = async (req, res) => {
        WHERE calories_burned IS NOT NULL
          AND trained = true
        ORDER BY RANDOM()
-       LIMIT 5000`
+       LIMIT 10000`
     );
 
     const data = result.rows;
