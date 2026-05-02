@@ -135,16 +135,18 @@ const recommend = (profile, { stats, encodedSet }, k = 7) => {
     healthy:         'You are cleared for any intensity. Push your limits!'
   };
 
-  const confidence = preferred && matchedNeighbours.length > 0
-    ? +((matchedNeighbours.length / k) * 100).toFixed(0)
-    : +(matchedNeighbours.filter(n => n.activity_type === recommendedActivity).length / k * 100).toFixed(0);
+  // Confidence calculation: distance-weighted similarity
+  // This gives a more intuitive "match percentage"
+  const totalWeight = neighbours.reduce((s, n) => s + (1 / (1 + n.dist)), 0);
+  const matchedWeight = matchedNeighbours.reduce((s, n) => s + (1 / (1 + n.dist)), 0);
+  const confidence = Math.round((matchedWeight / totalWeight) * 100);
 
   return {
     activity_type:    recommendedActivity,
     intensity:        safeIntensity,
     duration_minutes: recommendedDuration,
-    health_tip:       tips[healthCond] ?? 'Listen to your body and stay hydrated.',
-    confidence
+    health_tip:       tips[healthCond] ?? 'Sog\'ligingizga e\'tibor bering va suv ichishni unutmang.',
+    confidence:       confidence || 0
   };
 };
 

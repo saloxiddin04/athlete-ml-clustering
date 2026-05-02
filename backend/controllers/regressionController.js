@@ -110,16 +110,20 @@ const predictReg = async (req, res) => {
     const { model: preferModel = 'rf', ...profile } = req.body;
 
     // 1. Kaloriya bashoratlash
-    const predictedCalories = predictCalories(profile, regressionModel, preferModel);
+    let predictedCalories = predictCalories(profile, regressionModel, preferModel);
+    
+    // DATA REALISM: Agar bashorat juda kichik bo'lsa (dataset birligi kichik bo'lishi mumkin),
+    // uni 10 ga ko'paytiramiz (32.3 -> 323.0) foydalanuvchi so'raganidek.
+    const SCALE_FACTOR = 10;
+    predictedCalories = +(predictedCalories * SCALE_FACTOR).toFixed(1);
 
     // 2. O'xshash 3 sportchini topish (activity_type bir xil, case-insensitive)
     let similarAthletes = [];
     try {
       const sampleRes = await query(
-        `SELECT id, participant_id, age, activity_type, duration_minutes, calories_burned,
-                intensity, avg_heart_rate, weight_kg, height_cm,
-                daily_steps, sleep_hours, stress_level, endurance_level,
-                hydration_level, resting_heart_rate
+        `SELECT id, participant_id, age, gender, height_cm, weight_kg, bmi, 
+                activity_type, duration_minutes, intensity, calories_burned,
+                avg_heart_rate, resting_heart_rate, endurance_level
          FROM participants
          WHERE LOWER(activity_type) = LOWER($1)
            AND calories_burned IS NOT NULL
@@ -128,7 +132,13 @@ const predictReg = async (req, res) => {
          LIMIT 2000`,
         [profile.activity_type || '']
       );
+      
+      // Similar athletes ro'yxatini olishda ham kaloriyani scale qilamiz
       similarAthletes = findSimilarAthletes(profile, sampleRes.rows, regressionModel.stats, 3);
+      similarAthletes = similarAthletes.map(ath => ({
+        ...ath,
+        calories_burned: +(parseFloat(ath.calories_burned || 0) * SCALE_FACTOR).toFixed(1)
+      }));
     } catch (knnErr) {
       console.warn('KNN similar athletes xato:', knnErr.message);
     }

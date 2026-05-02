@@ -340,9 +340,11 @@ const findSimilarAthletes = (inputRow, allRows, stats, k = 3) => {
     .slice(0, k)
     .map(r => ({
       id:               r.id,
+      participant_id:   r.participant_id,
       activity_type:    r.activity_type,
       duration_minutes: parseFloat(r.duration_minutes || 0).toFixed(0),
       calories_burned:  parseFloat(r.calories_burned  || 0).toFixed(1),
+      avg_heart_rate:   r.avg_heart_rate,
       intensity:        r.intensity,
       distance:         +r._distance.toFixed(4)
     }));

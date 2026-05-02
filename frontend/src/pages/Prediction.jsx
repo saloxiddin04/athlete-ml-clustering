@@ -292,55 +292,57 @@ export default function Prediction() {
                 <div style={{ fontSize: 11, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 16 }}>
                   👥 O'xshash 3 Sportchi (KNN · bir xil faoliyat: {formData.activity_type})
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {result.similar_athletes.map((athlete, i) => (
-                    <div key={i} style={{
-                      padding: '14px 16px', borderRadius: 10,
-                      background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)',
-                      display: 'grid', gridTemplateColumns: 'auto 1fr 1fr 1fr', gap: 12, alignItems: 'center'
+                <div style={{ display: 'grid', gap: 12 }}>
+                  {result.similar_athletes.map((ath, idx) => (
+                    <div key={ath.id || idx} style={{
+                      padding: 14, borderRadius: 12, border: '1px solid var(--border)',
+                      background: 'rgba(255,255,255,0.02)',
+                      transition: 'all 0.2s ease'
                     }}>
-                      <div style={{
-                        width: 32, height: 32, borderRadius: '50%',
-                        background: `linear-gradient(135deg, #10b981, #059669)`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 900, fontSize: 14, color: '#fff'
-                      }}>
-                        {i + 1}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 6 }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: '#10b981', letterSpacing: 0.5 }}>
+                          ID: #{ath.participant_id || ath.id || idx + 1}
+                        </span>
+                        <span style={{ fontSize: 10, color: 'var(--text-secondary)', fontWeight: 600 }}>
+                          O'xshashlik: {Math.round((1 / (1 + (ath.distance || 0))) * 100)}%
+                        </span>
                       </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Faoliyat</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#10b981', textTransform: 'capitalize' }}>
-                          {athlete.activity_type}
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Faoliyat:</span> 
+                          <span style={{ color: '#fff', marginLeft: 6, textTransform: 'capitalize', fontWeight: 600 }}>{ath.activity_type}</span>
                         </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Kaloriya</div>
-                        <div style={{ fontSize: 15, fontWeight: 900, color: '#f59e0b' }}>
-                          {athlete.calories_burned} kcal
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Davomiylik:</span> 
+                          <span style={{ color: '#fff', marginLeft: 6 }}>{ath.duration_minutes} min</span>
                         </div>
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 10, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>Vaqt / Masofa</div>
-                        <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-                          {athlete.duration_minutes} min
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Intensivlik:</span> 
+                          <span style={{ color: '#fff', marginLeft: 6, textTransform: 'capitalize' }}>{ath.intensity || 'O\'rta'}</span>
                         </div>
-                        <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
-                          d={athlete.distance}
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Yurak urishi:</span> 
+                          <span style={{ color: '#fff', marginLeft: 6 }}>{ath.avg_heart_rate} bpm</span>
+                        </div>
+                        <div style={{ fontSize: 13, gridColumn: 'span 2', marginTop: 4, paddingTop: 6, borderTop: '1px dashed rgba(255,255,255,0.05)' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Yo'qotilgan kaloriya:</span> 
+                          <span style={{ color: '#f59e0b', marginLeft: 8, fontWeight: 900, fontSize: 15 }}>{ath.calories_burned} kcal</span>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: 12, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  * KNN: kiritilgan sportchi bilan <strong style={{ color: '#10b981' }}>{formData.activity_type}</strong> faoliyati orqali eng yaqin (Min-Max masofa) 3 ta shaxs ko'rsatilgan.
+                <div style={{ marginTop: 12, fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.4, fontStyle: 'italic' }}>
+                  * KNN: tanlangan faoliyat bo'yicha eng o'xshash sportchilar profili (Min-Max masofa).
                 </div>
               </Card>
             )}
 
             {result.similar_athletes && result.similar_athletes.length === 0 && (
-              <Card style={{ padding: 20, textAlign: 'center', color: 'var(--text-secondary)' }}>
-                <div style={{ fontSize: 24, marginBottom: 8 }}>🔍</div>
-                <div>Bir xil faoliyat turida o'xshash sportchi topilmadi ({formData.activity_type})</div>
+              <Card style={{ padding: 30, textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>🔍</div>
+                <div style={{ fontSize: 14 }}>"{formData.activity_type}" faoliyatida hali sportchilar ma'lumotlari yo'q.</div>
               </Card>
             )}
 
