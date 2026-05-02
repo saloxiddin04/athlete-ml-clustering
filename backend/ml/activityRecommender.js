@@ -135,10 +135,9 @@ const recommend = (profile, { stats, encodedSet }, k = 7) => {
     healthy:         'You are cleared for any intensity. Push your limits!'
   };
 
-  // Confidence calculation: distance-weighted similarity
-  // This gives a more intuitive "match percentage"
-  const totalWeight = neighbours.reduce((s, n) => s + (1 / (1 + n.dist)), 0);
-  const matchedWeight = matchedNeighbours.reduce((s, n) => s + (1 / (1 + n.dist)), 0);
+  // Confidence calculation: distance-weighted similarity (exponential decay)
+  const totalWeight = neighbours.reduce((s, n) => s + Math.exp(-n.dist), 0);
+  const matchedWeight = matchedNeighbours.reduce((s, n) => s + Math.exp(-n.dist), 0);
   const confidence = Math.round((matchedWeight / totalWeight) * 100);
 
   return {

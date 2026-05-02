@@ -346,7 +346,10 @@ const findSimilarAthletes = (inputRow, allRows, stats, k = 3) => {
       calories_burned:  parseFloat(r.calories_burned  || 0).toFixed(1),
       avg_heart_rate:   r.avg_heart_rate,
       intensity:        r.intensity,
-      distance:         +r._distance.toFixed(4)
+      // Similarity calculation: exponential decay for more natural 0-100% scale
+      // e^(-d) is better than 1/(1+d) for similarity
+      distance:         +r._distance.toFixed(4),
+      similarity:       Math.round(Math.exp(-r._distance) * 100)
     }));
 };
 

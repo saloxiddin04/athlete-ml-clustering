@@ -304,7 +304,7 @@ export default function Prediction() {
                           ID: #{ath.participant_id || ath.id || idx + 1}
                         </span>
                         <span style={{ fontSize: 10, color: 'var(--text-secondary)', fontWeight: 600 }}>
-                          O'xshashlik: {Math.round((1 / (1 + (ath.distance || 0))) * 100)}%
+                          O'xshashlik: {ath.similarity || 0}%
                         </span>
                       </div>
                       
