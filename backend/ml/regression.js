@@ -249,30 +249,40 @@ const trainRegressionModels = (data) => {
 
   // 80/20 train/test ajratish
   const splitIdx = Math.floor(dataset.length * 0.8);
-  const trainXs  = Xs.slice(0, splitIdx);
-  const testXs   = Xs.slice(splitIdx);
-  const trainNormYs = normYs.slice(0, splitIdx);
-  const testNormYs  = normYs.slice(splitIdx);
+  
+  // Minimal xavfsizlik: agar dataset juda kichik bo'lsa, hammasini train va test qilib ko'ramiz
+  let trainXs, testXs, trainNormYs, testNormYs;
+  if (dataset.length < 10) {
+    trainXs = testXs = Xs;
+    trainNormYs = testNormYs = normYs;
+  } else {
+    trainXs  = Xs.slice(0, splitIdx);
+    testXs   = Xs.slice(splitIdx);
+    trainNormYs = normYs.slice(0, splitIdx);
+    testNormYs  = normYs.slice(splitIdx);
+  }
 
   // Asl test qiymatlari (denormalizatsiya qilingan)
   const testYsReal = testNormYs.map(ny => descaleTarget(ny, stats));
 
-  // --- Linear Regression (normalizatsiya qilingan target bilan o'qitiladi) ---
+  // --- Linear Regression ---
   const linModel  = linearRegression(trainXs, trainNormYs, 0.05, 500);
   const linPreds  = testXs.map(x => descaleTarget(linPredict(linModel, x), stats));
 
-  // --- Random Forest (normalizatsiya qilingan target bilan o'qitiladi) ---
+  // --- Random Forest ---
   const rfTrees   = buildForest(trainXs, trainNormYs, 10);
   const rfPreds   = testXs.map(x => descaleTarget(forestPredict(rfTrees, x), stats));
 
-  // --- GBM (normalizatsiya qilingan target bilan o'qitiladi) ---
+  // --- GBM ---
   const gbm       = buildGBM(trainXs, trainNormYs, 15, 0.1);
   const gbmPreds  = testXs.map(x => descaleTarget(gbmPredict(gbm, x), stats));
 
+  const safeMetric = (val) => (isNaN(val) || val === null || !isFinite(val)) ? 0 : val;
+
   const metrics = {
-    linear: { rmse: +rmse(testYsReal, linPreds).toFixed(2), r2: +r2Score(testYsReal, linPreds).toFixed(3) },
-    rf:     { rmse: +rmse(testYsReal, rfPreds).toFixed(2),  r2: +r2Score(testYsReal, rfPreds).toFixed(3) },
-    gbm:    { rmse: +rmse(testYsReal, gbmPreds).toFixed(2), r2: +r2Score(testYsReal, gbmPreds).toFixed(3) }
+    linear: { rmse: +safeMetric(rmse(testYsReal, linPreds)).toFixed(2), r2: +safeMetric(r2Score(testYsReal, linPreds)).toFixed(3) },
+    rf:     { rmse: +safeMetric(rmse(testYsReal, rfPreds)).toFixed(2),  r2: +safeMetric(r2Score(testYsReal, rfPreds)).toFixed(3) },
+    gbm:    { rmse: +safeMetric(rmse(testYsReal, gbmPreds)).toFixed(2), r2: +safeMetric(r2Score(testYsReal, gbmPreds)).toFixed(3) }
   };
 
   return {

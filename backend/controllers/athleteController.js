@@ -143,7 +143,12 @@ const getFitnessStats = async (req, res) => {
             GROUP BY cluster_id
             ORDER BY cluster_id
         `);
-        const points = await query(`SELECT id, participant_id, fitness_level, pca_x, pca_y, cluster_id, age, bmi FROM participants WHERE pca_x IS NOT NULL LIMIT 2000`);
+        const points = await query(`
+            SELECT id, participant_id, fitness_level, pca_x, pca_y, cluster_id, age, bmi, calories_burned, activity_type 
+            FROM participants 
+            WHERE pca_x IS NOT NULL 
+            LIMIT 2000
+        `);
         res.json({ success: true, groups: result.rows, points: points.rows });
     } catch (e) { res.status(500).json({ error: e.message }); }
 };

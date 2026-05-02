@@ -183,8 +183,8 @@ export default function Visualization() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24, marginBottom: 40 }}>
               <StatCard title="Jami Sportchilar" value={points?.length || '---'} icon="👥" color="#3b82f6" />
               <StatCard title="Aniqlangan Guruhlar" value={groups?.length || '---'} icon="🎯" color="#10b981" />
-              <StatCard title="O'rtacha Kaloriya" value="482 kcal" icon="🔥" color="#f59e0b" />
-              <StatCard title="Faoliyat Turlari" value="12 xil" icon="🏃" color="#8b5cf6" />
+              <StatCard title="O'rtacha Kaloriya" value={points?.length ? Math.round(points.reduce((s, p) => s + (parseFloat(p.calories_burned) || 0), 0) / points.length) + " kcal" : "---"} icon="🔥" color="#f59e0b" />
+              <StatCard title="Faoliyat Turlari" value={points?.length ? [...new Set(points.map(p => p.activity_type))].length + " xil" : "---"} icon="🏃" color="#8b5cf6" />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 30 }}>
@@ -235,7 +235,11 @@ export default function Visualization() {
                       <XAxis type="number" dataKey="bmi" name="BMI" unit="" tick={{ fill: '#94a3b8' }} domain={['auto', 'auto']} />
                       <YAxis type="number" dataKey="fitness_level" name="Fitness" unit="" tick={{ fill: '#94a3b8' }} domain={['auto', 'auto']} />
                       <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                      <Scatter name="Sportchilar" data={points?.slice(0, 500) || []} fill="#3b82f6" fillOpacity={0.6} />
+                      <Scatter name="Sportchilar" data={points?.slice(0, 500) || []} fillOpacity={0.6}>
+                        {points?.slice(0, 500).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[entry.cluster_id % COLORS.length]} />
+                        ))}
+                      </Scatter>
                     </ScatterChart>
                   </ResponsiveContainer>
                 </div>
@@ -253,21 +257,26 @@ export default function Visualization() {
                 <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis type="number" dataKey="pca_x" hide />
-                    <YAxis type="number" dataKey="pca_y" hide />
+                    <XAxis type="number" dataKey="pca_x" name="X" hide />
+                    <YAxis type="number" dataKey="pca_y" name="Y" hide />
                     <Tooltip content={({ payload }) => {
                       if (!payload?.length) return null;
                       const d = payload[0].payload;
                       return (
                         <div style={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', padding: 15, borderRadius: 12 }}>
                           <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>ID: {d.participant_id}</div>
-                          <div style={{ fontSize: 15, fontWeight: 800, color: '#3b82f6', marginTop: 5 }}>Level: {d.fitness_level}</div>
-                          <div style={{ fontSize: 12, marginTop: 5 }}>Age: {d.age} | BMI: {d.bmi}</div>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: '#3b82f6', marginTop: 5 }}>Cluster: {d.cluster_id}</div>
+                          <div style={{ fontSize: 12, marginTop: 5 }}>Age: {d.age} | BMI: {d.bmi} | Fitness: {parseFloat(d.fitness_level).toFixed(2)}</div>
                         </div>
                       );
                     }} />
                     {groups?.map((g, i) => (
-                      <Scatter key={g.fitness_level} name={g.fitness_level} data={displayPoints.filter(p => p.fitness_level === g.fitness_level)} fill={COLORS[i % COLORS.length]} />
+                      <Scatter 
+                        key={g.cluster_id} 
+                        name={g.fitness_level} 
+                        data={displayPoints.filter(p => p.cluster_id === g.cluster_id)} 
+                        fill={COLORS[i % COLORS.length]} 
+                      />
                     ))}
                     <Legend />
                   </ScatterChart>
