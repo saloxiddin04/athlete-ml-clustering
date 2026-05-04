@@ -5,6 +5,8 @@ import {
 } from 'recharts';
 import * as api from '../services/api';
 import Card from '../components/Card';
+import { useDispatch } from 'react-redux';
+import { showNotification } from '../redux/uiSlice';
 
 const COLORS = {
 	healthy: '#10b981',
@@ -21,6 +23,7 @@ const COLORS = {
 };
 
 export default function Dashboard() {
+	const dispatch = useDispatch();
 	const [data, setData] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -146,67 +149,70 @@ export default function Dashboard() {
 				</div>
 			</div>
 
-			<div
-				style={{
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-					gap: 12,
-					marginBottom: 32,
-					padding: 20,
-					background: 'rgba(255,255,255,0.02)',
-					borderRadius: 16,
-					border: '1px solid var(--border)'
-				}}
-			>
-				<select
-					value={filters.gender} onChange={e => setFilters({ ...filters, gender: e.target.value })}
-					className="glass-select"
-				>
-					<option value="">All Genders</option>
-					<option value="Male">Male</option>
-					<option value="Female">Female</option>
-					<option value="Other">Other</option>
-				</select>
-				<select
-					value={filters.activity_type} onChange={e => setFilters({ ...filters, activity_type: e.target.value })}
-					className="glass-select"
-				>
-					<option value="">All Activities</option>
-					<option value="running">Running</option>
-					<option value="swimming">Swimming</option>
-					<option value="cycling">Cycling</option>
-					<option value="walking">Walking</option>
-					<option value="hiit">HIIT</option>
-					<option value="yoga">Yoga</option>
-					<option value="basketball">Basketball</option>
-					<option value="dancing">Dancing</option>
-				</select>
+			{/* TOP ACTIONS & STATS */}
+			<div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 24, marginBottom: 32 }}>
+				
+				{/* 1. CSV Upload & Database Sync */}
+				<Card style={{ padding: 24, border: '2px dashed var(--border)', background: 'rgba(59, 130, 246, 0.02)' }}>
+					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+						<h3 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>📥 Ma'lumotlarni yuklash (CSV)</h3>
+						<span style={{ fontSize: 10, color: 'var(--text-secondary)', fontWeight: 800 }}>PYTHON ENGINE V2.0</span>
+					</div>
+					<div style={{ border: '1px dashed var(--border)', borderRadius: 12, padding: 32, textAlign: 'center' }}>
+						<div style={{ fontSize: 32, marginBottom: 16 }}>📁</div>
+						<p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>
+							Datasetni tanlang va bazani yangilang. Format: .csv (80MB gacha)
+						</p>
+						<input 
+							type="file" 
+							id="csv-upload" 
+							hidden 
+							accept=".csv"
+							onChange={async (e) => {
+								const file = e.target.files[0];
+								if (!file) return;
+								const formData = new FormData();
+								formData.append('file', file);
+								try {
+									const res = await api.uploadCSV(formData);
+									if (res.success) {
+										dispatch(showNotification({ type: 'success', title: 'Tayyor!', message: `${res.count} ta yozuv qo'shildi.` }));
+										loadAnalytics();
+									}
+								} catch (err) {
+									dispatch(showNotification({ type: 'error', title: 'Xato', message: err.message }));
+								}
+							}}
+						/>
+						<button 
+							onClick={() => document.getElementById('csv-upload').click()}
+							style={{ 
+								padding: '12px 24px', borderRadius: 10, border: 'none', 
+								background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff', 
+								fontWeight: 900, cursor: 'pointer', fontSize: 14 
+							}}
+						>
+							Faylni tanlash
+						</button>
+					</div>
+				</Card>
 
-				<select
-					value={filters.health_condition} onChange={e => setFilters({ ...filters, health_condition: e.target.value })}
-					className="glass-select"
-				>
-					<option value="">All Health Conditions</option>
-					<option value="healthy">Healthy</option>
-					<option value="asthma">Asthma</option>
-					<option value="diabetes">Diabetes</option>
-					<option value="hypertension">Hypertension</option>
-					<option value="heart disease">Heart Disease</option>
-				</select>
-
-				<div style={{ display: 'flex', gap: 4 }}>
-					<input
-						type="number" placeholder="Min Age" value={filters.age_min}
-						onChange={e => setFilters({ ...filters, age_min: e.target.value })} className="glass-input"
-						style={{ width: '50%' }}
-					/>
-					<input
-						type="number" placeholder="Max Age" value={filters.age_max}
-						onChange={e => setFilters({ ...filters, age_max: e.target.value })} className="glass-input"
-						style={{ width: '50%' }}
-					/>
-				</div>
+				{/* 2. AI Insights (Feature Importance) */}
+				<Card style={{ padding: 24 }}>
+					<h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 800 }}>🧠 AI Faktorlar Ahamiyati</h3>
+					<div style={{ height: 250 }}>
+						<ResponsiveContainer width="100%" height="100%">
+							<BarChart data={data?.feature_importance?.slice(0, 8)} layout="vertical">
+								<XAxis type="number" hide />
+								<YAxis dataKey="name" type="category" width={100} style={{ fontSize: 9, fill: 'var(--text-secondary)' }} />
+								<Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: '#0f172a', border: 'none' }} />
+								<Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} />
+							</BarChart>
+						</ResponsiveContainer>
+					</div>
+				</Card>
 			</div>
+
 
 			{error ? (
 				<Card

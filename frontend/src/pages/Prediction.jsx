@@ -38,8 +38,8 @@ export default function Prediction() {
     sleep_hours: '7.5',
     stress_level: '3',
     hydration_level: '2.5',
-    health_condition: 'healthy'
-
+    health_condition: 'healthy',
+    smoke_status: "never"
   });
 
 
@@ -252,7 +252,7 @@ export default function Prediction() {
                 Bashorat qilingan kaloriya
               </div>
               <div style={{ fontSize: 64, fontWeight: 900, color: '#f59e0b', lineHeight: 1 }}>
-                {result.predicted_calories}
+                {(result.predicted_calories * 100).toFixed(0)}
               </div>
               <div style={{ fontSize: 18, color: 'var(--text-secondary)', marginTop: 4 }}>kcal</div>
               <div style={{
@@ -298,7 +298,7 @@ export default function Prediction() {
                   👥 O'xshash 3 Sportchi (KNN · bir xil faoliyat: {formData.activity_type})
                 </div>
                 <div style={{ display: 'grid', gap: 12 }}>
-                  {result.similar_athletes.map((ath, idx) => (
+                  {result?.similar_athletes?.map((ath, idx) => (
                     <div key={ath.id || idx} style={{
                       padding: 14, borderRadius: 12, border: '1px solid var(--border)',
                       background: 'rgba(255,255,255,0.02)',
@@ -320,19 +320,27 @@ export default function Prediction() {
                         </div>
                         <div style={{ fontSize: 12 }}>
                           <span style={{ color: 'var(--text-secondary)' }}>Davomiylik:</span>
-                          <span style={{ color: '#fff', marginLeft: 6 }}>{ath.duration_minutes} min</span>
+                          <span style={{ color: '#fff', marginLeft: 6 }}>{ath?.original?.duration_minutes} min</span>
                         </div>
                         <div style={{ fontSize: 12 }}>
                           <span style={{ color: 'var(--text-secondary)' }}>Intensivlik:</span>
                           <span style={{ color: '#fff', marginLeft: 6, textTransform: 'capitalize' }}>{ath.intensity || 'O\'rta'}</span>
                         </div>
                         <div style={{ fontSize: 12 }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Yurak urishi:</span>
-                          <span style={{ color: '#fff', marginLeft: 6 }}>{ath.avg_heart_rate} bpm</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>O'rtacha yurak urishi:</span>
+                          <span style={{ color: '#fff', marginLeft: 6 }}>{ath?.original?.avg_heart_rate} bpm</span>
+                        </div>
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Stress darajasi:</span>
+                          <span style={{ color: '#fff', marginLeft: 6 }}>{ath?.original?.stress_level}</span>
+                        </div>
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Kunlik qadamlar:</span>
+                          <span style={{ color: '#fff', marginLeft: 6 }}>{ath?.original?.daily_steps}</span>
                         </div>
                         <div style={{ fontSize: 13, gridColumn: 'span 2', marginTop: 4, paddingTop: 6, borderTop: '1px dashed rgba(255,255,255,0.05)' }}>
                           <span style={{ color: 'var(--text-secondary)' }}>Yo'qotilgan kaloriya:</span>
-                          <span style={{ color: '#f59e0b', marginLeft: 8, fontWeight: 900, fontSize: 15 }}>{ath.calories_burned} kcal</span>
+                          <span style={{ color: '#f59e0b', marginLeft: 8, fontWeight: 900, fontSize: 15 }}>{(ath?.original?.calories_burned * 100).toFixed(0)} kcal</span>
                         </div>
                       </div>
                     </div>

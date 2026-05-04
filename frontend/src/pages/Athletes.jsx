@@ -125,7 +125,7 @@ export default function Athletes() {
                         padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
                         background: 'rgba(16,185,129,0.15)', color: 'var(--accent-green)', border: '1px solid rgba(16,185,129,0.3)'
                       }}>
-                        {item.fitness_level.toUpperCase()}
+                        {item?.fitness_level?.toUpperCase()}
                       </span>
                     </td>
                     <td style={{ padding: '12px 16px' }}>

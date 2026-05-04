@@ -49,8 +49,8 @@ const athletesSlice = createSlice({
       .addCase(fetchAthletes.pending, state => { state.loading = true; state.error = null; })
       .addCase(fetchAthletes.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.list = payload.athletes;
-        state.pagination = payload.pagination;
+        state.list = payload?.list;
+        state.pagination = payload?.pagination;
       })
       .addCase(fetchAthletes.rejected, (state, { payload }) => {
         state.loading = false; state.error = payload;
