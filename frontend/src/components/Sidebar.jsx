@@ -5,9 +5,9 @@ import { logout } from '../redux/authSlice';
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: '⚡', path: '/dashboard' },
   { id: 'athletes', label: 'Athletes', icon: '🏃', path: '/athletes' },
-  { id: 'visualization', label: 'Visualizations', icon: '📊', path: '/visualization' },
+  // { id: 'visualization', label: 'Visualizations', icon: '📊', path: '/visualization' },
   { id: 'prediction', label: 'Predict', icon: '🎯', path: '/prediction' },
-  { id: 'history', label: 'History', icon: '📜', path: '/history' },
+  // { id: 'history', label: 'History', icon: '📜', path: '/history' },
 ];
 
 export default function Sidebar() {
