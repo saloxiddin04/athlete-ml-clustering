@@ -28,6 +28,7 @@ export default function Prediction() {
     bmi: '25.7',
     activity_type: 'HIIT',
     duration_minutes: '120',
+    endurance_level: "5",
     avg_heart_rate: '185',
     resting_heart_rate: '54',
     systolic_bp: '125',
