@@ -1,4 +1,6 @@
 import os
+import time
+
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Body
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -267,24 +269,54 @@ async def predict_consolidated(payload: dict = Body(...), db: AsyncSession = Dep
         """)
         res = await db.execute(query)
         rows = [dict(r._mapping) for r in res.fetchall()]
-        df_ref = pd.DataFrame(rows)
-        cached_ref_data = rows
         
-        # Drop identifiers for transformation
-        df_ref_features = df_ref.drop(columns=['id', 'participant_id', 'calories_burned'])
-        cached_ref_vectors = ml_pipeline.preprocessor.transform(df_ref_features)
+        if rows:
+            df_ref = pd.DataFrame(rows)
+            cached_ref_data = rows
+            # Drop identifiers for transformation
+            df_ref_features = df_ref.drop(columns=['id', 'participant_id', 'calories_burned'])
+            cached_ref_vectors = ml_pipeline.preprocessor.transform(df_ref_features)
+        else:
+            cached_ref_data = []
+            cached_ref_vectors = None
+
+    # 3.1 Perform similarity ONLY if we have reference data
+    similar = []
+    recommendation = {
+        "activity": payload.get("activity_type", "walking"),
+        "confidence": 0,
+        "health_tip": "Bazada yetarli ma'lumot yo'qligi sababli umumiy tavsiya berildi."
+    }
     
-    # Transform input correctly
-    df_input = pd.DataFrame([payload])
-    input_vector = ml_pipeline.preprocessor.transform(df_input)[0]
-    
-    similar = SimilarityService.get_similar_athletes(
-        input_vector, cached_ref_vectors, cached_ref_data, ml_pipeline.preprocessor.feature_names, k=3
-    )
-    
-    recommendation = RecommendationService.recommend(
-        input_vector, cached_ref_vectors, cached_ref_data, k=15
-    )
+    if cached_ref_vectors is not None and len(cached_ref_data) > 0:
+        # Transform input correctly
+        df_input = pd.DataFrame([payload])
+        input_vector = ml_pipeline.preprocessor.transform(df_input)[0]
+        
+        similar = SimilarityService.get_similar_athletes(
+            input_vector, cached_ref_vectors, cached_ref_data, ml_pipeline.preprocessor.feature_names, k=3
+        )
+        
+        rec_res = RecommendationService.recommend(
+            input_vector, cached_ref_vectors, cached_ref_data, k=min(15, len(cached_ref_data))
+        )
+        recommendation = {
+            "activity_type": rec_res["activity"],
+            "confidence": rec_res["confidence"],
+            "duration_minutes": payload.get("duration_minutes", 45),
+            "intensity": payload.get("intensity", "medium"),
+            "health_tip": "Python engine suggests consistent hydration."
+        }
+    else:
+        # Fallback recommendation if DB is empty
+        recommendation = {
+            "activity_type": payload.get("activity_type", "walking"),
+            "confidence": 50,
+            "duration_minutes": payload.get("duration_minutes", 45),
+            "intensity": payload.get("intensity", "medium"),
+            "health_tip": "Bazada ma'lumot yo'q. Birinchi foydalanuvchi sifatida ro'yxatga olindingiz."
+        }
+
     
     return {
         "success": True,
@@ -294,8 +326,9 @@ async def predict_consolidated(payload: dict = Body(...), db: AsyncSession = Dep
 
         "similar_athletes": similar,
         "recommendation": {
-            "activity_type": recommendation["activity"],
-            "confidence": recommendation["confidence"],
+            "activity_type": recommendation.get("activity_type", recommendation.get("activity")),
+            "confidence": recommendation.get("confidence", 0),
+
             "duration_minutes": payload.get("duration_minutes", 45),
             "intensity": payload.get("intensity", "medium"),
             "health_tip": "Python engine suggests consistent hydration."
