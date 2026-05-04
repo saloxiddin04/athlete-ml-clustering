@@ -45,7 +45,7 @@ export default function Prediction() {
 
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState('');
-  const [modelUsed, setModelUsed] = useState('linear');
+  const [modelUsed, setModelUsed] = useState('rf');
   const [trainMetrics, setTrainMetrics] = useState(null);
 
   // Sahifa ochilganda oldingi metrikalari olish
@@ -122,7 +122,7 @@ export default function Prediction() {
           {/* Model tanlash */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 700 }}>MODEL:</span>
-            {['rf', 'gbm', 'linear'].map(m => (
+            {['rf', 'gbm'].map(m => (
               <button
                 key={m}
                 onClick={() => setModelUsed(m)}
