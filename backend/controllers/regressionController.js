@@ -113,8 +113,8 @@ const predictReg = async (req, res) => {
     let predictedCalories = predictCalories(profile, regressionModel, preferModel);
     
     // DATA REALISM: Agar bashorat juda kichik bo'lsa (dataset birligi kichik bo'lishi mumkin),
-    // uni 20 ga ko'paytiramiz (32.3 -> 646.0) foydalanuvchi so'raganidek.
-    const SCALE_FACTOR = 20;
+    // uni 10 ga ko'paytiramiz (32.3 -> 323.0) foydalanuvchi so'raganidek.
+    const SCALE_FACTOR = 10;
     predictedCalories = +(predictedCalories * SCALE_FACTOR).toFixed(1);
 
     // 2. O'xshash 3 sportchini topish (activity_type bir xil, case-insensitive)
@@ -137,7 +137,7 @@ const predictReg = async (req, res) => {
       similarAthletes = findSimilarAthletes(profile, sampleRes.rows, regressionModel.stats, 3);
       similarAthletes = similarAthletes.map(ath => ({
         ...ath,
-        calories_burned: +(parseFloat(ath.calories_burned || 0) * 20).toFixed(1)
+        calories_burned: +(parseFloat(ath.calories_burned || 0) * SCALE_FACTOR).toFixed(1)
       }));
     } catch (knnErr) {
       console.warn('KNN similar athletes xato:', knnErr.message);

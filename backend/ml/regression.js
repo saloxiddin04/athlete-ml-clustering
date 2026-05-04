@@ -367,6 +367,8 @@ const findSimilarAthletes = (inputRow, allRows, stats, k = 3) => {
     return { ...r, _distance: dist };
   });
 
+  console.log(withDist)
+
   // Eng yaqin k ta sportchini olish
   return withDist
     .sort((a, b) => a._distance - b._distance)
@@ -379,6 +381,14 @@ const findSimilarAthletes = (inputRow, allRows, stats, k = 3) => {
       calories_burned:  parseFloat(r.calories_burned  || 0).toFixed(1),
       avg_heart_rate:   r.avg_heart_rate,
       intensity:        r.intensity,
+      age: r.age,
+      bmi: r.bmi,
+      gender: r.gender,
+      height_cm: r.height_cm,
+      weight_cm: r.weight_cm,
+      systolic_bp: parseFloat(r.systolic_bp || 0).toFixed(0),
+      diastolic_bp: parseFloat(r.diastolic_bp || 0).toFixed(0),
+      sleep_hours: r.sleep_hours,
       // Similarity calculation: exponential decay for more natural 0-100% scale
       // e^(-d) is better than 1/(1+d) for similarity
       distance:         +r._distance.toFixed(4),

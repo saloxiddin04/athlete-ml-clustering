@@ -88,7 +88,7 @@ const runPCA = (normalizedData) => {
 /**
  * Predict fitness_level using KNN
  */
-const predictFitnessLevel = (target, trainingSet, k = 5) => {
+const predictFitnessLevel = (target, trainingSet, k = 15) => {
 	if (trainingSet.length === 0) return 'Unknown';
 
 	const getDistance = (p1, p2) => {

@@ -7,7 +7,7 @@
  *         and votes on what activity type and intensity they performed best with.
  */
 
-const REC_FEATURES = ['age', 'bmi', 'stress_level', 'sleep_hours', 'avg_heart_rate', 'endurance_level', 'duration_minutes'];
+const REC_FEATURES = ["gender", "height_cm", "weight_kg", 'age', 'stress_level', 'sleep_hours', 'avg_heart_rate', 'endurance_level', 'duration_minutes', "bmi", "smoking", "hydration_level", "blood_pressure_diastolic", "blood_pressure_systolic", "resting_heart_rate", "daily_steps"];
 
 // Encode categorical fields into numbers
 const encodeRow = (row) => {
@@ -60,6 +60,7 @@ const buildRecommender = (trainingData) => {
   if (valid.length < 5) throw new Error('Need at least 5 labelled records to build recommender.');
 
   const stats = buildStats(valid);
+
   const encodedSet = valid.map(d => ({
     vec: normalise(encodeRow(d), stats),
     activity_type:    String(d.activity_type).toLowerCase(),
