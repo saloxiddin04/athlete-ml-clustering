@@ -7,7 +7,7 @@
  *         and votes on what activity type and intensity they performed best with.
  */
 
-const REC_FEATURES = ["gender", "height_cm", "weight_kg", 'age', 'stress_level', 'sleep_hours', 'avg_heart_rate', 'endurance_level', 'duration_minutes', "bmi", "smoking", "hydration_level", "blood_pressure_diastolic", "blood_pressure_systolic", "resting_heart_rate", "daily_steps"];
+const REC_FEATURES = ["height_cm", "weight_kg", 'age', 'stress_level', 'sleep_hours', 'avg_heart_rate', 'endurance_level', "bmi", "hydration_level", "diastolic_bp", "systolic_bp", "resting_heart_rate", "daily_steps"];
 
 // Encode categorical fields into numbers
 const encodeRow = (row) => {
@@ -20,8 +20,7 @@ const encodeRow = (row) => {
     ...REC_FEATURES.map(f => parseFloat(row[f] ?? 0)),
     healthMap[String(row.health_condition ?? '').toLowerCase()] ?? 0,
     smokeMap[String(row.smoke_status ?? '').toLowerCase()] ?? 0,
-    genderMap[String(row.gender ?? '').toLowerCase()] ?? 0,
-    intensityMap[String(row.intensity ?? 'medium').toLowerCase()] ?? 2
+    genderMap[String(row.gender ?? '').toLowerCase()] ?? 0
   ];
 };
 

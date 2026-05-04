@@ -33,7 +33,7 @@ const trainRegression = async (req, res) => {
       `SELECT age, height_cm, weight_kg, bmi, duration_minutes, intensity,
               activity_type, avg_heart_rate, resting_heart_rate, daily_steps,
               sleep_hours, stress_level, endurance_level, hydration_level,
-              calories_burned
+              systolic_bp, diastolic_bp, calories_burned
        FROM participants
        WHERE calories_burned IS NOT NULL
          AND trained = true
@@ -91,7 +91,7 @@ const predictReg = async (req, res) => {
         `SELECT age, height_cm, weight_kg, bmi, duration_minutes, activity_type,
                 avg_heart_rate, resting_heart_rate, daily_steps, sleep_hours,
                 stress_level, endurance_level, hydration_level,
-                calories_burned
+                systolic_bp, diastolic_bp, calories_burned
          FROM participants
          WHERE calories_burned IS NOT NULL AND trained = true
          ORDER BY RANDOM() LIMIT 3000`
@@ -120,10 +120,18 @@ const predictReg = async (req, res) => {
     // 2. O'xshash 3 sportchini topish (activity_type bir xil, case-insensitive)
     let similarAthletes = [];
     try {
+      // BMI ni avtomatik hisoblash (agar frontenddan kelmagan bo'lsa)
+      if (!profile.bmi && profile.weight_kg && profile.height_cm) {
+        const hm = parseFloat(profile.height_cm) / 100;
+        profile.bmi = +(parseFloat(profile.weight_kg) / (hm * hm)).toFixed(1);
+      }
+
       const sampleRes = await query(
         `SELECT id, participant_id, age, gender, height_cm, weight_kg, bmi, 
                 activity_type, duration_minutes, intensity, calories_burned,
-                avg_heart_rate, resting_heart_rate, endurance_level
+                avg_heart_rate, resting_heart_rate, endurance_level,
+                daily_steps, sleep_hours, stress_level, hydration_level,
+                systolic_bp, diastolic_bp, health_condition
          FROM participants
          WHERE LOWER(activity_type) = LOWER($1)
            AND calories_burned IS NOT NULL
@@ -152,7 +160,9 @@ const predictReg = async (req, res) => {
         const recData = await query(
           `SELECT age, bmi, gender, health_condition, smoke_status,
                   stress_level, sleep_hours, avg_heart_rate, endurance_level,
-                  activity_type, intensity, duration_minutes
+                  activity_type, intensity, duration_minutes,
+                  height_cm, weight_kg, resting_heart_rate, daily_steps,
+                  hydration_level, systolic_bp, diastolic_bp
            FROM participants
            WHERE activity_type IS NOT NULL AND intensity IS NOT NULL AND trained = true
            ORDER BY RANDOM() LIMIT 4000`

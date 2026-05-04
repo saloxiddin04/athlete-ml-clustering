@@ -12,7 +12,8 @@
 const REG_FEATURES = [
   'age', 'height_cm', 'weight_kg', 'duration_minutes',
   'avg_heart_rate', 'daily_steps', 'sleep_hours', 'stress_level',
-  'endurance_level', 'hydration_level', 'resting_heart_rate'
+  'endurance_level', 'hydration_level', 'resting_heart_rate',
+  'systolic_bp', 'diastolic_bp'
 ];
 
 const TARGET = 'calories_burned';
@@ -246,7 +247,7 @@ const trainRegressionModels = (data) => {
   const stats = computeMinMaxStats(dataset, [...augmentedFeatures, TARGET]);
 
   // Feature vektorlarni normalizatsiya qilish [0,1]
-  const Xs = dataset.map(d => augmentedFeatures.map(f => minMaxScale(parseFloat(d[f] || 0), stats[f])));
+  const Xs = dataset.map(d => augmentedFeatures.map(f => minMaxScale(parseFloat(d[f] || 0), stats[f].min, stats[f].max)));
 
   // Target qiymatlarni normalizatsiya qilish [0,1]
   const normYs = dataset.map(d => scaleTarget(d, stats));
@@ -311,7 +312,7 @@ const predictCalories = (row, { models, stats }, preferModel = 'rf') => {
   const augmentedRow = { ...row, metabolic_index: metabolicIndex };
   const augmentedFeatures = [...REG_FEATURES, 'metabolic_index'];
 
-  const xs = augmentedFeatures.map(f => minMaxScale(parseFloat(augmentedRow[f] || 0), stats[f]));
+  const xs = augmentedFeatures.map(f => minMaxScale(parseFloat(augmentedRow[f] || 0), stats[f].min, stats[f].max));
   const { linModel, rfTrees, gbm } = models;
 
   let normPred;
@@ -385,10 +386,11 @@ const findSimilarAthletes = (inputRow, allRows, stats, k = 3) => {
       bmi: r.bmi,
       gender: r.gender,
       height_cm: r.height_cm,
-      weight_cm: r.weight_cm,
+      weight_kg: r.weight_kg,
       systolic_bp: parseFloat(r.systolic_bp || 0).toFixed(0),
       diastolic_bp: parseFloat(r.diastolic_bp || 0).toFixed(0),
       sleep_hours: r.sleep_hours,
+      health_condition: r.health_condition,
       // Similarity calculation: exponential decay for more natural 0-100% scale
       // e^(-d) is better than 1/(1+d) for similarity
       distance:         +r._distance.toFixed(4),
