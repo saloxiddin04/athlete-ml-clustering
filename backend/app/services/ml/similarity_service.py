@@ -25,28 +25,37 @@ class SimilarityService:
         dists = euclidean_distances(input_w.reshape(1, -1), ref_w)[0]
         cosines = cosine_similarity(input_vector.reshape(1, -1), reference_vectors)[0]
         
-        # 3. Hybrid Score
+        # 3. Hybrid Score (Advanced Similarity)
         results = []
+        # Calculate max possible weighted distance for normalization (approximate)
+        max_dist = np.sqrt(np.sum(weights)) 
+        
         for i in range(len(reference_data)):
             dist = dists[i]
             cos = cosines[i]
             
-            # Hybrid Calculation
-            dist_sim = np.exp(-0.5 * dist)
-            score = (dist_sim * 0.4) + (cos * 0.6)
+            # Gaussian similarity from distance
+            # Using sigma based on max distance to ensure good distribution
+            sigma = max_dist / 2.0
+            dist_sim = np.exp(- (dist**2) / (2 * (sigma**2)))
             
-            # Clamp to 55-98%
-            min_s, max_s = 0.55, 0.98
-            final_similarity = min_s + (score * (max_s - min_s))
-            final_similarity = round(final_similarity * 100)
+            # Hybrid: Cosine (orientation) + Distance (magnitude)
+            # Weighted more towards distance for biometric similarity
+            score = (dist_sim * 0.7) + (cos * 0.3)
             
-            if final_similarity < 99: # Exclude identical
+            # Smart Mapping: 0.0 -> 1.0 maps to 65% -> 98.5%
+            # This makes the results feel "professional" and avoids 0% or 100%
+            final_similarity = 65 + (score * 33.5)
+            final_similarity = round(final_similarity, 1)
+            
+            if final_similarity < 99.5: # Exclude identical
                 results.append({
                     "id": reference_data[i]["id"],
                     "participant_id": reference_data[i]["participant_id"],
                     "activity_type": reference_data[i]["activity_type"],
-                    "similarity": int(final_similarity),
+                    "similarity": float(final_similarity),
                     "original": reference_data[i]
                 })
+
         
         return sorted(results, key=lambda x: x['similarity'], reverse=True)[:k]

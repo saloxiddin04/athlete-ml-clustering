@@ -6,3 +6,4 @@ build/
 *.log
 uploads/
 backend/venv
+backend/models/

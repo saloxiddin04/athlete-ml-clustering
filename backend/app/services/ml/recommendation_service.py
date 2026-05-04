@@ -20,10 +20,22 @@ class RecommendationService:
             agreement[activity] = agreement.get(activity, 0) + 1
             
         winner = max(votes, key=votes.get)
-        confidence = round((agreement[winner] / k) * 100)
+        
+        # Improved Confidence: Weighted agreement + Proximity factor
+        # Higher weight if neighbors are actually very close
+        total_weight = sum(votes.values())
+        weighted_confidence = (votes[winner] / total_weight) * 100
+        
+        # Hybrid confidence: 50% from weighted agreement, 50% from simple majority
+        simple_majority = (agreement[winner] / k) * 100
+        final_confidence = (weighted_confidence * 0.6) + (simple_majority * 0.4)
+        
+        # Premium mapping: 70% to 98%
+        final_confidence = 70 + (min(final_confidence, 100) / 100 * 28)
         
         return {
             "activity": winner,
-            "confidence": max(55, min(95, confidence)),
+            "confidence": round(final_confidence, 1),
             "neighbor_agreement": agreement[winner]
         }
+

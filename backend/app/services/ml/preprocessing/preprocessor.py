@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
@@ -20,8 +20,9 @@ class DataPreprocessor:
         # 1. Transformers
         numeric_transformer = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='median')),
-            ('scaler', StandardScaler())
+            ('scaler', MinMaxScaler())
         ])
+
         
         categorical_transformer = Pipeline(steps=[
             ('imputer', SimpleImputer(strategy='constant', fill_value='other')),

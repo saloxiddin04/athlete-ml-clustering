@@ -1,4 +1,6 @@
+import os
 import pandas as pd
+
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.cluster import KMeans
@@ -19,6 +21,51 @@ class MLTrainingService:
         self.metrics = {}
         self.feature_importance = []
         self.best_model_name = 'rf'
+        
+        # Robust path handling: find the 'backend/models' directory
+        # This works whether running from root or from backend folder
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        self.models_dir = os.path.join(base_dir, "models")
+        
+        # Try to load existing models on init
+        self.load_models()
+
+
+    def save_models(self):
+        import os
+        if not os.path.exists(self.models_dir):
+            os.makedirs(self.models_dir)
+            
+        joblib.dump(self.rf_model, f"{self.models_dir}/rf_model.pkl")
+        joblib.dump(self.gbm_model, f"{self.models_dir}/gbm_model.pkl")
+        joblib.dump(self.kmeans, f"{self.models_dir}/kmeans.pkl")
+        joblib.dump(self.pca, f"{self.models_dir}/pca.pkl")
+        joblib.dump(self.preprocessor, f"{self.models_dir}/preprocessor.pkl")
+        joblib.dump({
+            "metrics": self.metrics,
+            "best_model": self.best_model_name,
+            "feature_importance": self.feature_importance
+        }, f"{self.models_dir}/metadata.pkl")
+        print(f"💾 Models and metadata saved to {self.models_dir}")
+
+    def load_models(self):
+        import os
+        try:
+            if os.path.exists(f"{self.models_dir}/metadata.pkl"):
+                self.rf_model = joblib.load(f"{self.models_dir}/rf_model.pkl")
+                self.gbm_model = joblib.load(f"{self.models_dir}/gbm_model.pkl")
+                self.kmeans = joblib.load(f"{self.models_dir}/kmeans.pkl")
+                self.pca = joblib.load(f"{self.models_dir}/pca.pkl")
+                self.preprocessor = joblib.load(f"{self.models_dir}/preprocessor.pkl")
+                
+                meta = joblib.load(f"{self.models_dir}/metadata.pkl")
+                self.metrics = meta.get("metrics", {})
+                self.best_model_name = meta.get("best_model", "rf")
+                self.feature_importance = meta.get("feature_importance", [])
+                print("🧠 Existing models loaded successfully")
+        except Exception as e:
+            print(f"⚠️ Could not load models: {e}")
+
 
 
     async def run_pipeline(self, db_session):
@@ -116,7 +163,11 @@ class MLTrainingService:
         await db_session.execute(update_query, update_data)
         await db_session.commit()
         
+        # Save models to disk
+        self.save_models()
+        
         duration = time.time() - start_time
+
         print(f"✅ Training Pipeline finished in {duration:.2f}s")
         
         return {

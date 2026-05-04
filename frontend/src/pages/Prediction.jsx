@@ -21,26 +21,27 @@ export default function Prediction() {
 
   const [formData, setFormData] = useState({
     participant_id: 'ATH-' + Math.floor(1000 + Math.random() * 9000),
-    age: '30',
+    age: '25',
     gender: 'Male',
-    height_cm: '175',
-    weight_kg: '66',
-    bmi: '21.5',
+    height_cm: '180',
+    weight_kg: '75',
+    bmi: '23.1',
     activity_type: 'running',
-    intensity: 'medium',
-    duration_minutes: '45',
-    endurance_level: "10",
-    avg_heart_rate: '135',
-    resting_heart_rate: '71',
-    systolic_bp: '125',
-    diastolic_bp: '125',
-    daily_steps: '8000',
-    sleep_hours: '7.5',
-    stress_level: '3',
-    hydration_level: '2.5',
+    intensity: 'high',
+    duration_minutes: '60',
+    endurance_level: "15",
+    avg_heart_rate: '155',
+    resting_heart_rate: '65',
+    systolic_bp: '120',
+    diastolic_bp: '80',
+    daily_steps: '12000',
+    sleep_hours: '8',
+    stress_level: '2',
+    hydration_level: '3.0',
     health_condition: 'healthy',
     smoke_status: "never"
   });
+
 
 
   const [result, setResult] = useState(null);
@@ -252,17 +253,25 @@ export default function Prediction() {
                 Bashorat qilingan kaloriya
               </div>
               <div style={{ fontSize: 64, fontWeight: 900, color: '#f59e0b', lineHeight: 1 }}>
-                {(result.predicted_calories * 100).toFixed(0)}
+                {result.predicted_calories?.toFixed(0)}
               </div>
               <div style={{ fontSize: 18, color: 'var(--text-secondary)', marginTop: 4 }}>kcal</div>
+              
+              {result.confidence && (
+                <div style={{ marginTop: 12, fontSize: 13, color: '#10b981', fontWeight: 800 }}>
+                  🎯 Ishonch: {result.confidence}%
+                </div>
+              )}
+
               <div style={{
                 marginTop: 16, padding: '8px 16px', borderRadius: 8, display: 'inline-block',
                 background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)',
                 fontSize: 12, color: '#f59e0b', fontWeight: 700
               }}>
-                {result.model_used?.toUpperCase()} modeli ishlatildi · Min-Max [0,1] normalizatsiya
+                {result.model_used?.toUpperCase()} modeli ishlatildi
               </div>
             </Card>
+
 
             {/* Smart Recommendation */}
             {result.recommendation && (
