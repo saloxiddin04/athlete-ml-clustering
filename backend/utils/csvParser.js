@@ -117,8 +117,9 @@ const HEADER_MAP = {
   'daily_steps': ['daily_steps', 'daily_step'],
   'avg_heart_rate': ['avg_heart_rate', 'avg_heart_'],
   'resting_heart_rate': ['resting_heart_rate', 'resting_he'],
-  'systolic_bp': ['systolic_bp', 'blood_pressure: systolic', 'blood_pres', 'systolic'],
-  'diastolic_bp': ['diastolic_bp', 'blood_pressure: diastolic', 'blood_pres', 'diastolic'],
+  'systolic_bp': ['systolic_bp', 'blood_pressure: systolic', 'systolic'],
+  'diastolic_bp': ['diastolic_bp', 'blood_pressure: diastolic', 'diastolic'],
+
   'endurance_level': ['endurance_level', 'endurance_score', 'endurance'],
   'sleep_hours': ['sleep_hours', 'sleep_hou', 'sleep'],
   'stress_level': ['stress_level', 'stress_leve'],

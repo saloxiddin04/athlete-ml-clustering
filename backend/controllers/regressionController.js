@@ -26,20 +26,23 @@ let lastMetrics      = null;
 let recommenderModel = null;
 
 // ── O'qitish ─────────────────────────────────────────────────────────────────
+// ── O'qitish ─────────────────────────────────────────────────────────────────
 const trainRegression = async (req, res) => {
   try {
-    console.log('📊 Regression: 10.000 ta yozuv tanlanmoqda...');
+    console.log('📊 Regression: Barcha o\'qitilmagan va o\'qitilgan yozuvlar tanlanmoqda...');
+    
+    // Barcha o'qitish mumkin bo'lgan yozuvlarni olish
     const result = await query(
-      `SELECT age, height_cm, weight_kg, bmi, duration_minutes, intensity,
+      `SELECT age, gender, height_cm, weight_kg, bmi, duration_minutes, intensity,
               activity_type, avg_heart_rate, resting_heart_rate, daily_steps,
               sleep_hours, stress_level, endurance_level, hydration_level,
               systolic_bp, diastolic_bp, calories_burned
        FROM participants
        WHERE calories_burned IS NOT NULL
-         AND trained = true
        ORDER BY RANDOM()
        LIMIT 10000`
     );
+
 
     const data = result.rows;
     if (data.length < 30) {
@@ -49,10 +52,13 @@ const trainRegression = async (req, res) => {
       });
     }
 
-    console.log(`🔧 ${data.length} ta yozuv bilan o'qitilmoqda (Min-Max normalizatsiya)...`);
+    console.log(`🔧 ${data.length} ta yozuv bilan o'qitilmoqda...`);
     const trained    = trainRegressionModels(data);
     regressionModel  = trained;
     lastMetrics      = trained.metrics;
+
+    // Mark all as trained after successful training
+    await query(`UPDATE participants SET trained = true WHERE calories_burned IS NOT NULL`);
 
     // Recommender modelini ham qayta o'qitish
     try {
@@ -64,7 +70,7 @@ const trainRegression = async (req, res) => {
 
     res.json({
       success: true,
-      message: `Regression modellari ${trained.trainedOn} ta yozuv bilan o'qitildi (Min-Max [0,1] normalizatsiya).`,
+      message: `Regression modellari ${trained.trainedOn} ta yozuv bilan o'qitildi. Barcha yozuvlar "trained = true" holatiga o'tkazildi.`,
       metrics: trained.metrics
     });
   } catch (err) {
@@ -72,6 +78,7 @@ const trainRegression = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
 
 // ── Bashoratlash: Kaloriya + o'xshash sportchilar + tavsiya ─────────────────
 /**
@@ -85,10 +92,10 @@ const trainRegression = async (req, res) => {
  */
 const predictReg = async (req, res) => {
   try {
-    // Avto o'qitish (birinchi so'rovda)
+    // Avto o'qitish (birinchi so'rovda faqat tayyor/o'qitilgan ma'lumotlarni oladi)
     if (!regressionModel) {
       const result = await query(
-        `SELECT age, height_cm, weight_kg, bmi, duration_minutes, activity_type,
+        `SELECT age, gender, height_cm, weight_kg, bmi, duration_minutes, activity_type, intensity,
                 avg_heart_rate, resting_heart_rate, daily_steps, sleep_hours,
                 stress_level, endurance_level, hydration_level,
                 systolic_bp, diastolic_bp, calories_burned
@@ -96,6 +103,7 @@ const predictReg = async (req, res) => {
          WHERE calories_burned IS NOT NULL AND trained = true
          ORDER BY RANDOM() LIMIT 3000`
       );
+
       if (result.rows.length < 30) {
         return res.status(400).json({
           success: false,
@@ -107,15 +115,41 @@ const predictReg = async (req, res) => {
       try { recommenderModel = buildRecommender(result.rows); } catch (_) {}
     }
 
+
+
     const { model: preferModel = 'rf', ...profile } = req.body;
 
     // 1. Kaloriya bashoratlash
     let predictedCalories = predictCalories(profile, regressionModel, preferModel);
     
-    // DATA REALISM: Agar bashorat juda kichik bo'lsa (dataset birligi kichik bo'lishi mumkin),
-    // uni 10 ga ko'paytiramiz (32.3 -> 323.0) foydalanuvchi so'raganidek.
-    const SCALE_FACTOR = 10;
-    predictedCalories = +(predictedCalories * SCALE_FACTOR).toFixed(1);
+    // DATA CONSISTENCY: Qiymatni formatlash
+    predictedCalories = +predictedCalories.toFixed(1);
+
+    // BASHORATNI DB GA YOZISH (Trained = false)
+    try {
+      await query(
+        `INSERT INTO participants (
+          participant_id, recorded_at, age, gender, height_cm, weight_kg, bmi, 
+          activity_type, duration_minutes, intensity, calories_burned, 
+          daily_steps, avg_heart_rate, resting_heart_rate, systolic_bp, 
+          diastolic_bp, endurance_level, sleep_hours, stress_level, 
+          hydration_level, smoke_status, health_condition, trained, source
+        ) VALUES ($1, NOW(), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, false, 'prediction')`,
+        [
+          profile.participant_id || `ATH-${Date.now()}`,
+          profile.age, profile.gender, profile.height_cm, profile.weight_kg, profile.bmi,
+          profile.activity_type, profile.duration_minutes, profile.intensity, predictedCalories,
+          profile.daily_steps, profile.avg_heart_rate, profile.resting_heart_rate, profile.systolic_bp,
+          profile.diastolic_bp, profile.endurance_level, profile.sleep_hours, profile.stress_level,
+          profile.hydration_level, profile.smoke_status || 'never', profile.health_condition
+        ]
+      );
+      console.log('📝 Yangi bashorat DB ga saqlandi (trained=false)');
+    } catch (dbErr) {
+      console.error('DB save error:', dbErr.message);
+    }
+
+
 
     // 2. O'xshash 3 sportchini topish (activity_type bir xil, case-insensitive)
     let similarAthletes = [];
@@ -141,12 +175,9 @@ const predictReg = async (req, res) => {
         [profile.activity_type || '']
       );
       
-      // Similar athletes ro'yxatini olishda ham kaloriyani scale qilamiz
+      // Similar athletes ro'yxatini olish
       similarAthletes = findSimilarAthletes(profile, sampleRes.rows, regressionModel.stats, 3);
-      similarAthletes = similarAthletes.map(ath => ({
-        ...ath,
-        calories_burned: +(parseFloat(ath.calories_burned || 0) * SCALE_FACTOR).toFixed(1)
-      }));
+
     } catch (knnErr) {
       console.warn('KNN similar athletes xato:', knnErr.message);
     }
@@ -172,14 +203,14 @@ const predictReg = async (req, res) => {
         }
       }
       if (recommenderModel) {
-        // Foydalanuvchi tanlagan activity_type ga mos qo'shnilarni ko'proq olish uchun
-        // k ni oshirib, tanlangan faoliyatni "preferred" sifatida uzatamiz
+        // k ni oshirish orqali ko'proq qo'shnilarni qamrab olamiz
         recommendation = recommend(
           { ...profile, preferred_activity: profile.activity_type },
           recommenderModel,
-          15
+          25
         );
       }
+
     } catch (recErr) {
       console.warn('Recommendation xato:', recErr.message);
     }

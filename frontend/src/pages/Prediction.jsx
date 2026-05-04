@@ -21,35 +21,38 @@ export default function Prediction() {
 
   const [formData, setFormData] = useState({
     participant_id: 'ATH-' + Math.floor(1000 + Math.random() * 9000),
-    age: '24',
+    age: '30',
     gender: 'Male',
-    height_cm: '185',
-    weight_kg: '88',
-    bmi: '25.7',
-    activity_type: 'HIIT',
-    duration_minutes: '120',
-    endurance_level: "5",
-    avg_heart_rate: '185',
-    resting_heart_rate: '54',
+    height_cm: '175',
+    weight_kg: '66',
+    bmi: '21.5',
+    activity_type: 'running',
+    intensity: 'medium',
+    duration_minutes: '45',
+    endurance_level: "10",
+    avg_heart_rate: '135',
+    resting_heart_rate: '71',
     systolic_bp: '125',
-    diastolic_bp: '82',
-    daily_steps: '18000',
-    sleep_hours: '8',
-    stress_level: '1',
-    hydration_level: '4.0',
+    diastolic_bp: '125',
+    daily_steps: '8000',
+    sleep_hours: '7.5',
+    stress_level: '3',
+    hydration_level: '2.5',
     health_condition: 'healthy'
+
   });
 
-  const [result, setResult]         = useState(null);
-  const [loading, setLoading]       = useState('');
-  const [modelUsed, setModelUsed]   = useState('rf');
+
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState('');
+  const [modelUsed, setModelUsed] = useState('linear');
   const [trainMetrics, setTrainMetrics] = useState(null);
 
   // Sahifa ochilganda oldingi metrikalari olish
   useEffect(() => {
     api.getRegressionMetrics()
       .then(res => { if (res.success && res.metrics) setTrainMetrics(res.metrics); })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleChange = e => {
@@ -96,7 +99,7 @@ export default function Prediction() {
   // Intensity rangi
   const intensityColor = v => {
     const s = String(v || '').toLowerCase();
-    if (s === 'high')   return '#ef4444';
+    if (s === 'high') return '#ef4444';
     if (s === 'medium') return '#f59e0b';
     return '#10b981';
   };
@@ -189,9 +192,9 @@ export default function Prediction() {
 
               <GroupTitle title="Biologik profil" />
               <Field label="Yosh" name="age" type="number" formData={formData} onChange={handleChange} />
-              <Field label="Jins" name="gender" type="select" options={['Male','Female','Other']} formData={formData} onChange={handleChange} />
+              <Field label="Jins" name="gender" type="select" options={['Male', 'Female', 'Other']} formData={formData} onChange={handleChange} />
               <Field label="Sog'lik holati" name="health_condition" type="select"
-                options={['healthy','asthma','diabetes','hypertension','heart disease']}
+                options={['healthy', 'asthma', 'diabetes', 'hypertension', 'heart disease']}
                 formData={formData} onChange={handleChange} />
               <Field label="Bo'y (cm)" name="height_cm" type="number" formData={formData} onChange={handleChange} />
               <Field label="Vazn (kg)" name="weight_kg" type="number" formData={formData} onChange={handleChange} />
@@ -207,14 +210,18 @@ export default function Prediction() {
 
               <GroupTitle title="Faoliyat & Hayot tarzi" />
               <Field label="Faoliyat turi" name="activity_type" type="select"
-                options={['running','swimming','cycling','walking','hiit','yoga','basketball','dancing']}
+                options={['running', 'swimming', 'cycling', 'walking', 'hiit', 'yoga', 'basketball', 'dancing']}
+                formData={formData} onChange={handleChange} />
+              <Field label="Intensivlik" name="intensity" type="select"
+                options={['low', 'medium', 'high']}
                 formData={formData} onChange={handleChange} />
               <Field label="Davomiylik (min)" name="duration_minutes" type="number" formData={formData} onChange={handleChange} />
+
               <Field label="Kunlik qadamlar" name="daily_steps" type="number" formData={formData} onChange={handleChange} />
               <Field label="Uyqu soatlari" name="sleep_hours" type="number" step="0.5" formData={formData} onChange={handleChange} />
               <Field label="Gidratatsiya (L)" name="hydration_level" type="number" step="0.1" formData={formData} onChange={handleChange} />
               <Field label="Chekish holati" name="smoke_status" type="select"
-                options={['never','former','current']}
+                options={['never', 'former', 'current']}
                 formData={formData} onChange={handleChange} />
 
             </div>
@@ -305,26 +312,26 @@ export default function Prediction() {
                           O'xshashlik: {ath.similarity || 0}%
                         </span>
                       </div>
-                      
+
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
                         <div style={{ fontSize: 12 }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Faoliyat:</span> 
+                          <span style={{ color: 'var(--text-secondary)' }}>Faoliyat:</span>
                           <span style={{ color: '#fff', marginLeft: 6, textTransform: 'capitalize', fontWeight: 600 }}>{ath.activity_type}</span>
                         </div>
                         <div style={{ fontSize: 12 }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Davomiylik:</span> 
+                          <span style={{ color: 'var(--text-secondary)' }}>Davomiylik:</span>
                           <span style={{ color: '#fff', marginLeft: 6 }}>{ath.duration_minutes} min</span>
                         </div>
                         <div style={{ fontSize: 12 }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Intensivlik:</span> 
+                          <span style={{ color: 'var(--text-secondary)' }}>Intensivlik:</span>
                           <span style={{ color: '#fff', marginLeft: 6, textTransform: 'capitalize' }}>{ath.intensity || 'O\'rta'}</span>
                         </div>
                         <div style={{ fontSize: 12 }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Yurak urishi:</span> 
+                          <span style={{ color: 'var(--text-secondary)' }}>Yurak urishi:</span>
                           <span style={{ color: '#fff', marginLeft: 6 }}>{ath.avg_heart_rate} bpm</span>
                         </div>
                         <div style={{ fontSize: 13, gridColumn: 'span 2', marginTop: 4, paddingTop: 6, borderTop: '1px dashed rgba(255,255,255,0.05)' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Yo'qotilgan kaloriya:</span> 
+                          <span style={{ color: 'var(--text-secondary)' }}>Yo'qotilgan kaloriya:</span>
                           <span style={{ color: '#f59e0b', marginLeft: 8, fontWeight: 900, fontSize: 15 }}>{ath.calories_burned} kcal</span>
                         </div>
                       </div>
