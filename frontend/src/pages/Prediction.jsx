@@ -85,7 +85,7 @@ export default function Prediction() {
     setLoading('train');
     try {
       const res = await api.trainRegression();
-      if (res.success) {
+      if (res.status === "success") {
         setTrainMetrics(res.metrics);
         dispatch(showNotification({ type: 'success', title: 'O\'qitish tugadi', message: res.message }));
       }
@@ -166,8 +166,8 @@ export default function Prediction() {
                   {name === 'rf' ? 'Random Forest' : name === 'gbm' ? 'Gradient Boosting' : 'Linear Regression'}
                 </div>
                 <div style={{ fontSize: 13, color: 'var(--text-primary)', marginTop: 4 }}>
-                  RMSE: <strong style={{ color: '#f59e0b' }}>{m.rmse}</strong>
-                  &nbsp;&nbsp;R²: <strong style={{ color: '#10b981' }}>{m.r2}</strong>
+                  RMSE: <strong style={{ color: '#f59e0b' }}>{(m.rmse * 100).toFixed(1)}</strong>
+                  &nbsp;&nbsp;R²: <strong style={{ color: '#10b981' }}>{(m.r2 * 100).toFixed(1)}</strong>
                 </div>
               </div>
               <div style={{

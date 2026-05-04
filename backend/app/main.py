@@ -4,7 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 import pandas as pd
+import numpy as np
 import io
+
 from app.db.session import get_db
 from app.services.ml.training_service import MLTrainingService
 from app.services.ml.similarity_service import SimilarityService
@@ -40,21 +42,91 @@ async def upload_csv(file: UploadFile = File(...), db: AsyncSession = Depends(ge
     content = await file.read()
     df = pd.read_csv(io.BytesIO(content))
     
-    # Clean column names
+    # 1. Standardize column names
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
     
-    # Bulk insert using SQLAlchemy core for performance
-    records = df.to_dict(orient='records')
-    for r in records:
-        # Basic mapping/cleanup if needed
-        if 'bmi' not in r and 'weight_kg' in r and 'height_cm' in r:
-            h_m = float(r['height_cm']) / 100
-            r['bmi'] = round(float(r['weight_kg']) / (h_m * h_m), 1)
-        
-        # Ensure 'trained' is false for new records
-        r['trained'] = False
-        r['source'] = 'upload'
+    # 2. Map common variations to DB fields
+    col_map = {
+        'smoking_status': 'smoke_status',
+        'smoke': 'smoke_status',
+        'blood_pressure_systolic': 'systolic_bp',
+        'blood_pressure_diastolic': 'diastolic_bp',
+        'systolic': 'systolic_bp',
+        'diastolic': 'diastolic_bp',
+        'heart_rate': 'avg_heart_rate',
+        'avg_hr': 'avg_heart_rate',
+        'resting_hr': 'resting_heart_rate',
+        'steps': 'daily_steps',
+        'steps_count': 'daily_steps',
+        'sleep': 'sleep_hours',
+        'hydration': 'hydration_level',
+        'stress': 'stress_level',
+        'endurance': 'endurance_level'
+    }
+    df.rename(columns=col_map, inplace=True)
     
+    # 3. Handle NaNs immediately
+    # Replace NaN with None (NULL) for objects, and appropriate defaults for numbers
+    df = df.replace({np.nan: None})
+    
+    # 4. Required columns for the INSERT query
+    required_cols = [
+        'participant_id', 'age', 'gender', 'height_cm', 'weight_kg', 'bmi', 
+        'activity_type', 'duration_minutes', 'intensity', 'calories_burned',
+        'daily_steps', 'avg_heart_rate', 'resting_heart_rate', 'systolic_bp', 
+        'diastolic_bp', 'endurance_level', 'sleep_hours', 'stress_level', 
+        'hydration_level', 'smoke_status', 'health_condition'
+    ]
+    
+    final_records = []
+    for _, row in df.iterrows():
+        record = {}
+        for col in required_cols:
+            val = row.get(col)
+            
+            # Apply defaults if missing or None
+            if val is None or (isinstance(val, float) and np.isnan(val)):
+                if 'bp' in col: val = 120 if 'systolic' in col else 80
+                elif 'rate' in col: val = 70
+                elif col == 'smoke_status': val = 'never'
+                elif col == 'gender': val = 'Other'
+                elif col == 'health_condition': val = 'healthy'
+                elif col == 'intensity': val = 'medium'
+                elif col == 'activity_type': val = 'walking'
+                else: val = 0
+            
+            # --- STRICT TYPE CASTING ---
+            # Varchar columns must be strings
+            str_cols = ['participant_id', 'gender', 'activity_type', 'intensity', 'smoke_status', 'health_condition']
+            if col in str_cols:
+                if isinstance(val, float): # Handle case like 1.0 -> "1"
+                    if val == int(val): val = str(int(val))
+                    else: val = str(val)
+                else:
+                    val = str(val)
+            else:
+                # Numeric columns must be floats/ints
+                try: val = float(val)
+                except: val = 0.0
+                
+            record[col] = val
+        
+        # Calculate BMI if it's still 0 or None
+        if (not record.get('bmi') or record['bmi'] == 0) and record.get('height_cm') and record.get('weight_kg'):
+            try:
+                h_m = float(record['height_cm']) / 100
+                if h_m > 0:
+                    record['bmi'] = round(float(record['weight_kg']) / (h_m * h_m), 1)
+            except: record['bmi'] = 22.0
+            
+        record['trained'] = False
+        record['source'] = 'upload'
+        final_records.append(record)
+
+    
+    if not final_records:
+        return {"success": False, "message": "Fayl bo'sh yoki o'qib bo'lmadi."}
+
     await db.execute(text("""
         INSERT INTO participants (
             participant_id, age, gender, height_cm, weight_kg, bmi, 
@@ -69,16 +141,18 @@ async def upload_csv(file: UploadFile = File(...), db: AsyncSession = Depends(ge
             :diastolic_bp, :endurance_level, :sleep_hours, :stress_level, 
             :hydration_level, :smoke_status, :health_condition, :trained, :source
         )
-    """), records)
+    """), final_records)
     
     await db.commit()
     
     # Record the upload
     await db.execute(text("INSERT INTO uploads (filename, original_name, row_count) VALUES (:f, :o, :c)"),
-                    {"f": file.filename, "o": file.filename, "c": len(records)})
+                    {"f": file.filename, "o": file.filename, "c": len(final_records)})
     await db.commit()
     
-    return {"success": True, "count": len(records)}
+    return {"success": True, "count": len(final_records)}
+
+
 
 
 @app.post("/api/ml/train")
