@@ -349,7 +349,7 @@ export default function Prediction() {
                         </div>
                         <div style={{ fontSize: 13, gridColumn: 'span 2', marginTop: 4, paddingTop: 6, borderTop: '1px dashed rgba(255,255,255,0.05)' }}>
                           <span style={{ color: 'var(--text-secondary)' }}>Yo'qotilgan kaloriya:</span>
-                          <span style={{ color: '#f59e0b', marginLeft: 8, fontWeight: 900, fontSize: 15 }}>{(ath?.original?.calories_burned * 100).toFixed(0)} kcal</span>
+                          <span style={{ color: '#f59e0b', marginLeft: 8, fontWeight: 900, fontSize: 15 }}>{ath?.original?.calories_burned} kcal</span>
                         </div>
                       </div>
                     </div>

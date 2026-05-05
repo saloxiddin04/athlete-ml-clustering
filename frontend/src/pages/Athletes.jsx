@@ -45,10 +45,13 @@ export default function Athletes() {
     { key: 'gender', label: 'Gender', width: 90 },
     { key: 'bmi', label: 'BMI', width: 70 },
     { key: 'activity_type', label: 'Activity', width: 110 },
-    { key: 'avg_heart_rate', label: 'BPM', width: 70 },
+    { key: 'avg_heart_rate', label: 'BPM (avg)', width: 70 },
     { key: 'systolic_bp', label: 'BP(S)', width: 70 },
     { key: 'diastolic_bp', label: 'BP(D)', width: 70 },
-    { key: 'fitness_level', label: 'Level', width: 100 },
+    { key: 'calories_burned', label: 'kCal', width: 70 },
+    { key: 'daily_steps', label: 'Daily Steps', width: 70 },
+    { key: 'duration_minutes', label: 'Duration (min)', width: 70 },
+    { key: 'endurance_level', label: 'Endurance', width: 70 },
     { key: 'source', label: 'Source', width: 100 },
   ];
 
@@ -114,20 +117,16 @@ export default function Athletes() {
                   <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
                     <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--accent-cyan)' }}>{item.participant_id}</td>
                     <td style={{ padding: '12px 16px' }}>{item.age}</td>
-                    <td style={{ padding: '12px 16px', textTransform: 'capitalize' }}>{item.gender}</td>
+                    <td style={{ padding: '12px 16px', textTransform: 'capitalize' }}>{item.gender === "F" ? "Female" : "Male"}</td>
                     <td style={{ padding: '12px 16px', fontFamily: 'JetBrains Mono, monospace' }}>{parseFloat(item.bmi).toFixed(1)}</td>
                     <td style={{ padding: '12px 16px', textTransform: 'capitalize' }}>{item.activity_type}</td>
                     <td style={{ padding: '12px 16px' }}>{item.avg_heart_rate}</td>
                     <td style={{ padding: '12px 16px' }}>{item.systolic_bp}</td>
                     <td style={{ padding: '12px 16px' }}>{item.diastolic_bp}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{
-                        padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700,
-                        background: 'rgba(16,185,129,0.15)', color: 'var(--accent-green)', border: '1px solid rgba(16,185,129,0.3)'
-                      }}>
-                        {item?.fitness_level?.toUpperCase()}
-                      </span>
-                    </td>
+                    <td style={{ padding: '12px 16px' }}>{item.calories_burned}</td>
+                    <td style={{ padding: '12px 16px' }}>{item.daily_steps}</td>
+                    <td style={{ padding: '12px 16px' }}>{item.duration_minutes}</td>
+                    <td style={{ padding: '12px 16px' }}>{item.endurance_level}</td>
                     <td style={{ padding: '12px 16px' }}>
                        <span style={{
                         fontSize: 10, padding: '2px 8px', borderRadius: 10,
