@@ -277,8 +277,8 @@ export default function Dashboard() {
 					</div>
 
 					{/* MAIN CHARTS GRID */}
-					<div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 24, marginBottom: 24 }}>
-						<Card style={{ padding: 24 }}>
+					<div className="flex w-full">
+						<Card className="w-full" style={{ padding: 24 }}>
 							<h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>🏃 Caloric Output by Activity Type</h3>
 							<div style={{ height: 350 }}>
 								<ResponsiveContainer width="100%" height="100%">
@@ -301,51 +301,51 @@ export default function Dashboard() {
 								</ResponsiveContainer>
 							</div>
 						</Card>
-						<Card style={{ borderLeft: `6px solid ${COLORS.risk}`, background: 'rgba(255,255,255,0.01)' }}>
-							<h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>🚨 Clinical Risk Assessment</h3>
-							<div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: 10 }}>
-								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<div>
-										<div style={{ fontSize: 13, fontWeight: 700 }}>High BMI Risk {"(>30)"}</div>
-										<div style={{
-											fontSize: 11,
-											color: 'var(--text-secondary)'
-										}}>Potential Metabolic Syndrome</div>
-									</div>
-									<div style={{
-										fontSize: 24,
-										fontWeight: 800,
-										color: COLORS.risk
-									}}>{parseInt(risks.high_bmi || 0).toLocaleString()}</div>
-								</div>
-								<div style={{ height: 1, background: 'var(--border)' }} />
-								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<div>
-										<div style={{ fontSize: 13, fontWeight: 700 }}>Hypertension Alerts</div>
-										<div
-											style={{ fontSize: 11, color: 'var(--text-secondary)' }}>High Blood Pressure (BP)</div>
-									</div>
-									<div style={{
-										fontSize: 24,
-										fontWeight: 800,
-										color: COLORS.risk
-									}}>{parseInt(risks.high_bp || 0).toLocaleString()}</div>
-								</div>
-								<div style={{ height: 1, background: 'var(--border)' }} />
-								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-									<div>
-										<div style={{ fontSize: 13, fontWeight: 700 }}>Sedentary Population</div>
-										<div
-											style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Under 3,000 steps daily</div>
-									</div>
-									<div style={{
-										fontSize: 24,
-										fontWeight: 800,
-										color: COLORS.moderate
-									}}>{parseInt(risks.low_activity || 0).toLocaleString()}</div>
-								</div>
-							</div>
-						</Card>
+						{/*<Card style={{ borderLeft: `6px solid ${COLORS.risk}`, background: 'rgba(255,255,255,0.01)' }}>*/}
+						{/*	<h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>🚨 Clinical Risk Assessment</h3>*/}
+						{/*	<div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: 10 }}>*/}
+						{/*		<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>*/}
+						{/*			<div>*/}
+						{/*				<div style={{ fontSize: 13, fontWeight: 700 }}>High BMI Risk {"(>30)"}</div>*/}
+						{/*				<div style={{*/}
+						{/*					fontSize: 11,*/}
+						{/*					color: 'var(--text-secondary)'*/}
+						{/*				}}>Potential Metabolic Syndrome</div>*/}
+						{/*			</div>*/}
+						{/*			<div style={{*/}
+						{/*				fontSize: 24,*/}
+						{/*				fontWeight: 800,*/}
+						{/*				color: COLORS.risk*/}
+						{/*			}}>{parseInt(risks.high_bmi || 0).toLocaleString()}</div>*/}
+						{/*		</div>*/}
+						{/*		<div style={{ height: 1, background: 'var(--border)' }} />*/}
+						{/*		<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>*/}
+						{/*			<div>*/}
+						{/*				<div style={{ fontSize: 13, fontWeight: 700 }}>Hypertension Alerts</div>*/}
+						{/*				<div*/}
+						{/*					style={{ fontSize: 11, color: 'var(--text-secondary)' }}>High Blood Pressure (BP)</div>*/}
+						{/*			</div>*/}
+						{/*			<div style={{*/}
+						{/*				fontSize: 24,*/}
+						{/*				fontWeight: 800,*/}
+						{/*				color: COLORS.risk*/}
+						{/*			}}>{parseInt(risks.high_bp || 0).toLocaleString()}</div>*/}
+						{/*		</div>*/}
+						{/*		<div style={{ height: 1, background: 'var(--border)' }} />*/}
+						{/*		<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>*/}
+						{/*			<div>*/}
+						{/*				<div style={{ fontSize: 13, fontWeight: 700 }}>Sedentary Population</div>*/}
+						{/*				<div*/}
+						{/*					style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Under 3,000 steps daily</div>*/}
+						{/*			</div>*/}
+						{/*			<div style={{*/}
+						{/*				fontSize: 24,*/}
+						{/*				fontWeight: 800,*/}
+						{/*				color: COLORS.moderate*/}
+						{/*			}}>{parseInt(risks.low_activity || 0).toLocaleString()}</div>*/}
+						{/*		</div>*/}
+						{/*	</div>*/}
+						{/*</Card>*/}
 					</div>
 
 					{/*/!* NEW: CLUSTERING EDA ANALYSIS *!/*/}
