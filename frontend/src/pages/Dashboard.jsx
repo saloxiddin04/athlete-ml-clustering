@@ -348,49 +348,49 @@ export default function Dashboard() {
 						</Card>
 					</div>
 
-					{/* NEW: CLUSTERING EDA ANALYSIS */}
-					<div style={{ marginBottom: 24 }}>
-						<Card style={{ padding: 24 }}>
-							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-								<h3 style={{ fontSize: 16, fontWeight: 700 }}>🧬 AI-Driven Athlete Clustering (EDA)</h3>
-								<div style={{ display: 'flex', gap: 16 }}>
-									<div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
-										<span style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.chart[0] }} /> Cluster 0
-									</div>
-									<div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
-										<span style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.chart[1] }} /> Cluster 1
-									</div>
-									<div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>
-										<span style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.chart[2] }} /> Cluster 2
-									</div>
-								</div>
-							</div>
-							<p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20 }}>
-								This visualization uses K-Means to segment athletes into 3 distinct behavioral groups based on their biometric and activity data.
-							</p>
-							<div style={{ height: 400, background: 'rgba(0,0,0,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-								{/* Mock Scatter plot for visual representation since Recharts Scatter is more complex to set up quickly */}
-								<div style={{ width: '100%', height: '100%', padding: 40 }}>
-									<ResponsiveContainer width="100%" height="100%">
-										<BarChart data={data?.activity?.map((a, i) => ({ ...a, cluster: i % 3 }))}>
-											<CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-											<XAxis dataKey="name" hide />
-											<YAxis hide />
-											<Tooltip />
-											<Bar dataKey="value" radius={[10, 10, 10, 10]}>
-												{data?.activity?.map((entry, index) => (
-													<Cell key={`cell-${index}`} fill={COLORS.chart[index % 3]} />
-												))}
-											</Bar>
-										</BarChart>
-									</ResponsiveContainer>
-								</div>
-								<div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 10, color: 'var(--text-secondary)' }}>
-									*Dimensions projected via PCA
-								</div>
-							</div>
-						</Card>
-					</div>
+					{/*/!* NEW: CLUSTERING EDA ANALYSIS *!/*/}
+					{/*<div style={{ marginBottom: 24 }}>*/}
+					{/*	<Card style={{ padding: 24 }}>*/}
+					{/*		<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>*/}
+					{/*			<h3 style={{ fontSize: 16, fontWeight: 700 }}>🧬 AI-Driven Athlete Clustering (EDA)</h3>*/}
+					{/*			<div style={{ display: 'flex', gap: 16 }}>*/}
+					{/*				<div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>*/}
+					{/*					<span style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.chart[0] }} /> Cluster 0*/}
+					{/*				</div>*/}
+					{/*				<div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>*/}
+					{/*					<span style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.chart[1] }} /> Cluster 1*/}
+					{/*				</div>*/}
+					{/*				<div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11 }}>*/}
+					{/*					<span style={{ width: 8, height: 8, borderRadius: '50%', background: COLORS.chart[2] }} /> Cluster 2*/}
+					{/*				</div>*/}
+					{/*			</div>*/}
+					{/*		</div>*/}
+					{/*		<p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 20 }}>*/}
+					{/*			This visualization uses K-Means to segment athletes into 3 distinct behavioral groups based on their biometric and activity data.*/}
+					{/*		</p>*/}
+					{/*		<div style={{ height: 400, background: 'rgba(0,0,0,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>*/}
+					{/*			/!* Mock Scatter plot for visual representation since Recharts Scatter is more complex to set up quickly *!/*/}
+					{/*			<div style={{ width: '100%', height: '100%', padding: 40 }}>*/}
+					{/*				<ResponsiveContainer width="100%" height="100%">*/}
+					{/*					<BarChart data={data?.activity?.map((a, i) => ({ ...a, cluster: i % 3 }))}>*/}
+					{/*						<CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />*/}
+					{/*						<XAxis dataKey="name" hide />*/}
+					{/*						<YAxis hide />*/}
+					{/*						<Tooltip />*/}
+					{/*						<Bar dataKey="value" radius={[10, 10, 10, 10]}>*/}
+					{/*							{data?.activity?.map((entry, index) => (*/}
+					{/*								<Cell key={`cell-${index}`} fill={COLORS.chart[index % 3]} />*/}
+					{/*							))}*/}
+					{/*						</Bar>*/}
+					{/*					</BarChart>*/}
+					{/*				</ResponsiveContainer>*/}
+					{/*			</div>*/}
+					{/*			<div style={{ position: 'absolute', bottom: 10, right: 10, fontSize: 10, color: 'var(--text-secondary)' }}>*/}
+					{/*				*Dimensions projected via PCA*/}
+					{/*			</div>*/}
+					{/*		</div>*/}
+					{/*	</Card>*/}
+					{/*</div>*/}
 				</>
 			)}
 
