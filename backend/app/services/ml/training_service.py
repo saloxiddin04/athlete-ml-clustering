@@ -89,7 +89,17 @@ class MLTrainingService:
         if len(df) < 100:
             return {"error": "Insufficient data"}
 
-        # 2. Preprocessing
+        # --- Recalculate BMI to fix historical errors ---
+        def calc_bmi(row):
+            try:
+                h_m = row['height_cm'] / 100
+                if h_m > 0: return round(row['weight_kg'] / (h_m * h_m), 1)
+                return 22.0
+            except: return 22.0
+            
+        df['bmi'] = df.apply(calc_bmi, axis=1)
+
+        # 2. Preprocessing (Encoding is temporary for training only, DB remains TEXT)
         numerical = ['age', 'height_cm', 'weight_kg', 'bmi', 'duration_minutes', 
                      'daily_steps', 'avg_heart_rate', 'resting_heart_rate',
                      'systolic_bp', 'diastolic_bp', 'endurance_level', 'sleep_hours', 

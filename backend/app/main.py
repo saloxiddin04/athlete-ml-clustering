@@ -113,13 +113,19 @@ async def upload_csv(file: UploadFile = File(...), db: AsyncSession = Depends(ge
                 
             record[col] = val
         
-        # Calculate BMI if it's still 0 or None
-        if (not record.get('bmi') or record['bmi'] == 0) and record.get('height_cm') and record.get('weight_kg'):
+        # --- RECALCULATE BMI (Crucial for AI accuracy) ---
+        if record.get('height_cm') and record.get('weight_kg'):
             try:
                 h_m = float(record['height_cm']) / 100
+                w_kg = float(record['weight_kg'])
                 if h_m > 0:
-                    record['bmi'] = round(float(record['weight_kg']) / (h_m * h_m), 1)
-            except: record['bmi'] = 22.0
+                    record['bmi'] = round(w_kg / (h_m * h_m), 1)
+                else:
+                    record['bmi'] = 22.0
+            except: 
+                record['bmi'] = 22.0
+        else:
+            record['bmi'] = 22.0
             
         record['trained'] = False
         record['source'] = 'upload'
@@ -237,9 +243,15 @@ async def predict_consolidated(payload: dict = Body(...), db: AsyncSession = Dep
                 :hyd, :smoke, :health, false, 'prediction'
             )
         """)
+        # --- RECALCULATE BMI for prediction payload ---
+        h_cm = float(payload.get('height_cm', 170))
+        w_kg = float(payload.get('weight_kg', 70))
+        calculated_bmi = round(w_kg / ((h_cm/100)**2), 1) if h_cm > 0 else 22.0
+        payload['bmi'] = calculated_bmi
+
         await db.execute(insert_query, {
             "p_id": new_id, "age": float(payload.get('age', 0)), "gender": payload.get('gender', 'Other'),
-            "h": float(payload.get('height_cm', 0)), "w": float(payload.get('weight_kg', 0)), "bmi": float(payload.get('bmi', 0)),
+            "h": h_cm, "w": w_kg, "bmi": calculated_bmi,
             "act": payload.get('activity_type', 'walking'), "dur": float(payload.get('duration_minutes', 0)),
             "int": payload.get('intensity', 'medium'), "cal": float(calories),
             "steps": float(payload.get('daily_steps', 0)), "hr": float(payload.get('avg_heart_rate', 70)),
